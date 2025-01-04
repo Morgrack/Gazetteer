@@ -16,12 +16,23 @@
 
 <body>
 
+    <div class="pre-load" id="pre-load-page"></div>
+
     <div class="h-100 w-100 position-absolute" id="map"></div>
 
-    <div class="h-100 w-100 position-absolute" id="overlay-container">
-        <div>
-
+    <div class="h-100 w-100 position-absolute pe-none" id="overlay-container">
+        <div class="h-100 w-100 d-flex align-items-center justify-content-center">
+            <img id="crosshair" src="assets/crosshair.png">
         </div>
+        <div class="position-absolute start-50 translate-middle-x bg-light shadow-sm rounded d-flex flex-row justify-content-around align-items-center pe-auto" id="latlng-container">
+            <input class="form-control d-inline-flex shadow" id="lat">
+            <input class="form-control d-inline-flex shadow" id="lng">
+            <button class="btn btn-outline-dark border-secondary shadow" id="latlng-search"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+    </div>
+
+    <div class="w-100 position-fixed top-0 pe-none" id="dropdown-container">
+        <select class="form-select shadow-sm pe-auto" id="dropdown"></select>
     </div>
 
     <script src="libs/jquery/jquery-3.7.1.min.js"></script>
