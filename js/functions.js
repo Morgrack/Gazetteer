@@ -15,29 +15,49 @@ const map = L.map("map").setView([state.currentLatLng.lat, state.currentLatLng.l
 const layerControl = L.control.layers(layers).addTo(map);
 stadiaOSMBright.addTo(map);
 
-//LOCAL SELECT
-function localSelect(event)
+//ROUND TO DECIMAL PLACE
+function roundToDecimalPlace(value, degrees)
 {
-    state.currentLatLng = event.latlng;
-    state.allowLatLngUpdate = false;
-    map.panTo([state.currentLatLng.lat, state.currentLatLng.lng], { duration: 0.25 });
-    setTimeout(() => { state.allowLatLngUpdate = true; }, 251);
+    const factor = Math.pow(10, degrees);
+    return Math.round(value*factor)/factor;
 }
 
 //UPDATE LATLNG
-function updateLatLng()
+function updateLatLng(newLatLng)
 {
-    if (state.allowLatLngUpdate)
-    {
-        state.currentLatLng = map.getCenter();
-    }
+    state.currentLatLng = newLatLng;
+    $("#lat").val(roundToDecimalPlace(state.currentLatLng.lat, 4));
+    $("#lng").val(roundToDecimalPlace(state.currentLatLng.lng, 4));
+}
+
+//LOCAL SELECT
+function localSelect(newLatLng)
+{
+    updateLatLng(newLatLng);
+    state.allowLatLngUpdate = false;
+    map.panTo([newLatLng.lat, newLatLng.lng], { duration: 0.25 });
+    setTimeout(() => { state.allowLatLngUpdate = true; }, 270);
+}
+
+//LATLNG SEARCH
+function onLatLngSearch()
+{
+    localSelect({ lat: $("#lat").val(), lng: $("#lng").val() });
+}
+
+//ON MOVE MAP
+function onMoveMap()
+{
+    if (state.allowLatLngUpdate) { updateLatLng(map.getCenter()); }
 }
 
 //DOCUMENT READY
 $(document).ready(async () => 
 {
-    map.on("click", (event) => { localSelect(event); } );
-    map.on("move", updateLatLng);
+    updateLatLng(state.currentLatLng);
+    map.on("click", (event) => { localSelect(event.latlng); } );
+    map.on("move", onMoveMap);
+    $("#latlng-search").click(onLatLngSearch);
     $('#pre-load-page').addClass('fadeOut');
 });
 
