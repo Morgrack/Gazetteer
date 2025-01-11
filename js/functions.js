@@ -2,18 +2,63 @@
 const state = 
 {
     allowLatLngUpdate: true,
+    currentCountry: { isoa2: "AF", isoa3: "AFG", ison3: "004", name: "Afghanistan" },
     currentLatLng: { lat: 34.52, lng: 69.18 },
-    currentISO2: "AF",
-    currentISO3: "AFG"
+    geoJSON: {}
 }
 
-//LEAFLET MAP
-const stadiaOSMBright = L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}', { minZoom: 0, maxZoom: 20, ext: 'png'/*, attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'*/ });
-const stadiaAlidadeSatellite = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.{ext}', { minZoom: 0, maxZoom: 20, ext: 'jpg'/*, attribution: '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'*/ });
+//MAP
+const stadiaOSMBright = L.tileLayer("https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}", { minZoom: 0, maxZoom: 20, ext: "png"/*, attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'*/ });
+const stadiaAlidadeSatellite = L.tileLayer("https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.{ext}", { minZoom: 0, maxZoom: 20, ext: "jpg"/*, attribution: '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'*/ });
 const layers = { "Street": stadiaOSMBright, "Satellite": stadiaAlidadeSatellite }
 const map = L.map("map").setView([state.currentLatLng.lat, state.currentLatLng.lng], 5);
 const layerControl = L.control.layers(layers).addTo(map);
 stadiaOSMBright.addTo(map);
+
+//GET GEOJSON
+async function getGeoJSON()
+{
+    state.geoJSON = await $.ajax({ url: "php/local/getGeoJSON.php", type: "GET", dataType: "json" });
+}
+
+//GET CURRENT COUNTRY
+async function getCurrentCountry()
+{
+    try
+    {
+        const geolocation = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true }));
+        
+        state.currentLatLng.lat = geolocation.coords.latitude;
+        state.currentLatLng.lng = geolocation.coords.longitude;
+    }
+    catch
+    {
+
+    }   
+}
+
+//POPULATE DROPDOWN
+function populateDropdown()
+{
+    $("#dropdown").append('<option value="--,--,--">--</option>');
+    const results = [];
+    for (let result of state.geoJSON.features)
+    {
+        const properties = result.properties;
+        results.push({ isoa2: properties.iso_a2, isoa3: properties.iso_a3, ison3: properties.iso_n3, name: properties.name });
+    }
+    results.sort((a, b) => { return a.name > b.name ? 1 : -1 });
+    for (let result of results)
+    {
+        $("#dropdown").append(`<option value="${result.isoa2},${result.isoa3},${result.ison3},${result.name}">${result.name}</option>`);
+    }
+}
+
+//SELECT DROPDOWN
+function onDropdownSelect()
+{
+    [state.currentCountry.isoa2, state.currentCountry.isoa3, state.currentCountry.ison3, state.currentCountry.name] = $("#dropdown").val().split(',');
+}
 
 //ROUND TO DECIMAL PLACE
 function roundToDecimalPlace(value, degrees)
@@ -31,7 +76,7 @@ function updateLatLng(newLatLng)
 }
 
 //LOCAL SELECT
-function localSelect(newLatLng)
+function onLocalSelect(newLatLng)
 {
     updateLatLng(newLatLng);
     state.allowLatLngUpdate = false;
@@ -42,7 +87,7 @@ function localSelect(newLatLng)
 //LATLNG SEARCH
 function onLatLngSearch()
 {
-    localSelect({ lat: $("#lat").val(), lng: $("#lng").val() });
+    onLocalSelect({ lat: $("#lat").val(), lng: $("#lng").val() });
 }
 
 //ON MOVE MAP
@@ -54,11 +99,16 @@ function onMoveMap()
 //DOCUMENT READY
 $(document).ready(async () => 
 {
+    await getGeoJSON();
+    await getCurrentCountry();
+    populateDropdown();
+    $("#dropdown").change(onDropdownSelect);
     updateLatLng(state.currentLatLng);
-    map.on("click", (event) => { localSelect(event.latlng); } );
+    map.on("click", (event) => { onLocalSelect(event.latlng); } );
     map.on("move", onMoveMap);
     $("#latlng-search").click(onLatLngSearch);
-    $('#pre-load-page').addClass('fadeOut');
+    $("#pre-load-page").addClass("fade-out");
+
 });
 
 //LOCAL INFORMATION SCROLLABLE (e.g. weather, landmarks, also changes current nation to one selected if possible, thereby greying out all others)

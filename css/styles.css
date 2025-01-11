@@ -102,7 +102,7 @@ body
     }
 }
     
-.fadeOut 
+.fade-out
 {
     visibility: hidden;
     opacity: 0;
