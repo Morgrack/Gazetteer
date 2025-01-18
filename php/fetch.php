@@ -25,7 +25,7 @@ function fetch($URL): array
         $output["status"]["description"] = json_last_error_msg();
         $output["status"]["name"] = "Failure - JSON";
     }
-    else if ($parsed_result === null) //make sure that younare not checking conditions twice here
+    else if ($parsed_result === null)
     {
         $output["data"] = null;
         $output["status"]["code"] = 400;
@@ -36,7 +36,7 @@ function fetch($URL): array
     {
         $output["data"] = $parsed_result;
         $output["status"]["code"] = 200;
-        $output["status"]["description"] = "success";
+        $output["status"]["description"] = "ok";
         $output["status"]["name"] = "Success";
     }
     return $output;

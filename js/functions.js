@@ -27,9 +27,22 @@ async function getCurrentCountry()
     try
     {
         const geolocation = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true }));
-        
-        state.currentLatLng.lat = geolocation.coords.latitude;
-        state.currentLatLng.lng = geolocation.coords.longitude;
+        if (!geolocation) { return; }
+        const openCageResult = await $.ajax({ url: "php/opencage/getCountryFromLatLng.php", type: "GET", dataType: "json", data: { lat: geolocation.coords.latitude, lng: geolocation.coords.longitude } });
+        if (!openCageResult.data) { return; }
+        for (let feature of state.geoJSON.features)
+        {
+            if (feature.properties.iso_a2 === openCageResult.data)
+            { 
+                state.currentCountry.isoa2 = feature.properties.iso_a2;
+                state.currentCountry.isoa3 = feature.properties.iso_a3;
+                state.currentCountry.ison3 = feature.properties.iso_n3;
+                state.currentCountry.name = feature.properties.name;
+                state.currentLatLng.lat = geolocation.coords.latitude;
+                state.currentLatLng.lng = geolocation.coords.longitude;
+                map.setView([state.currentLatLng.lat, state.currentLatLng.lng]);
+            }
+        }
     }
     catch
     {
@@ -52,12 +65,21 @@ function populateDropdown()
     {
         $("#dropdown").append(`<option value="${result.isoa2},${result.isoa3},${result.ison3},${result.name}">${result.name}</option>`);
     }
+    $("#dropdown").val(`${state.currentCountry.isoa2},${state.currentCountry.isoa3},${state.currentCountry.ison3},${state.currentCountry.name}`);
 }
 
 //SELECT DROPDOWN
 function onDropdownSelect()
 {
-    [state.currentCountry.isoa2, state.currentCountry.isoa3, state.currentCountry.ison3, state.currentCountry.name] = $("#dropdown").val().split(',');
+    const newCountry = $("#dropdown").val().split(',');
+    [state.currentCountry.isoa2, state.currentCountry.isoa3, state.currentCountry.ison3, state.currentCountry.name] = newCountry;
+    for (let feature of state.geoJSON.features)
+    {
+        if (feature.properties.iso_a2 === feature[0])
+        {
+
+        }
+    }
 }
 
 //ROUND TO DECIMAL PLACE
@@ -100,7 +122,7 @@ function onMoveMap()
 $(document).ready(async () => 
 {
     await getGeoJSON();
-    await getCurrentCountry();
+    //await getCurrentCountry();
     populateDropdown();
     $("#dropdown").change(onDropdownSelect);
     updateLatLng(state.currentLatLng);
