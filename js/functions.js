@@ -84,7 +84,7 @@ function drawCountryBorder()
     {
         if (feature.properties.iso_a2 === state.currentCountry.isoa2)
         {
-            state.currentGraphics.border = L.geoJSON(feature, { color: "black", dashArray: 5, fillOpacity: 0, weight: 2 }).addTo(map);
+            state.currentGraphics.border = L.geoJSON(feature, { color: "black", dashArray: 5, fillOpacity: 0, weight: 3 }).addTo(map);
             map.fitBounds(state.currentGraphics.border.getBounds());
         }
     }
@@ -126,20 +126,38 @@ function onMoveMap()
     if (state.allowLatLngUpdate) { updateLatLng(map.getCenter()); }
 }
 
+//OPEN MODAL
+function openModal()
+{
+    $("#modal").modal("show");
+}
+
+//CLOSE MODAL
+function closeModal()
+{
+
+}
+
+//CREATE EASY BUTTONS
+function createEasyButtons()
+{
+    L.easyButton("fa-solid fa-globe", openModal).addTo(map);
+}
+
 //DOCUMENT READY
 $(document).ready(async () => 
 {
     await getGeoJSON();
-    await getCurrentCountry();
+    //await getCurrentCountry();
     populateDropdown(); 
     $("#dropdown").change(onDropdownSelect);
     drawCountryBorder();
     updateLatLng(state.currentLatLng);
     map.on("click", (event) => { onLocalSelect(event.latlng); } );
     map.on("move", onMoveMap);
+    createEasyButtons();
     $("#latlng-search").click(onLatLngSearch);
     $("#pre-load-page").addClass("fade-out");
-
 });
 
 //LOCAL INFORMATION SCROLLABLE (e.g. weather, landmarks, also changes current nation to one selected if possible, thereby greying out all others)
