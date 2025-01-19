@@ -3,6 +3,7 @@ const state =
 {
     allowLatLngUpdate: true,
     currentCountry: { isoa2: "AF", isoa3: "AFG", ison3: "004", name: "Afghanistan" },
+    currentGraphics: { border: null },
     currentLatLng: { lat: 34.52, lng: 69.18 },
     geoJSON: {}
 }
@@ -71,13 +72,20 @@ function populateDropdown()
 //SELECT DROPDOWN
 function onDropdownSelect()
 {
-    const newCountry = $("#dropdown").val().split(',');
-    [state.currentCountry.isoa2, state.currentCountry.isoa3, state.currentCountry.ison3, state.currentCountry.name] = newCountry;
+    [state.currentCountry.isoa2, state.currentCountry.isoa3, state.currentCountry.ison3, state.currentCountry.name] = $("#dropdown").val().split(',');
+    drawCountryBorder();
+}
+
+//GREY OUT MAP
+function drawCountryBorder()
+{
+    if (state.currentGraphics.border !== null) { state.currentGraphics.border.remove(); }
     for (let feature of state.geoJSON.features)
     {
-        if (feature.properties.iso_a2 === feature[0])
+        if (feature.properties.iso_a2 === state.currentCountry.isoa2)
         {
-
+            state.currentGraphics.border = L.geoJSON(feature, { color: "black", dashArray: 5, fillOpacity: 0, weight: 2 }).addTo(map);
+            map.fitBounds(state.currentGraphics.border.getBounds());
         }
     }
 }
@@ -122,9 +130,10 @@ function onMoveMap()
 $(document).ready(async () => 
 {
     await getGeoJSON();
-    //await getCurrentCountry();
-    populateDropdown();
+    await getCurrentCountry();
+    populateDropdown(); 
     $("#dropdown").change(onDropdownSelect);
+    drawCountryBorder();
     updateLatLng(state.currentLatLng);
     map.on("click", (event) => { onLocalSelect(event.latlng); } );
     map.on("move", onMoveMap);
