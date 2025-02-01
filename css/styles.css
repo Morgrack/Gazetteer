@@ -42,6 +42,19 @@ body
     width: 38%;
 }
 
+#flag 
+{
+    height: 30px;
+    width: 50px;
+    border: 1px solid black;
+    margin-right: 10px;
+}
+
+.modal-body
+{
+    min-height: 175px;
+}
+
 .pre-load 
 {
     position: absolute;

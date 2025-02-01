@@ -2,7 +2,7 @@
 
 require "../fetch.php";
 $executionStartTime = microtime(as_float: true);
-$output = fetch(URL: "https://restcountries.com/v3.1/alpha/" . $_REQUEST["iso3"] . "");
+$output = fetch(URL: "https://restcountries.com/v3.1/alpha/" . $_REQUEST["isoa3"] . "");
 // if ($output["status"]["code"] === 200)
 // {
     

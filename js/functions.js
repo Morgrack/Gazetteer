@@ -47,7 +47,7 @@ async function getCurrentCountry()
     }
     catch
     {
-
+        
     }   
 }
 
@@ -67,6 +67,7 @@ function populateDropdown()
         $("#dropdown").append(`<option value="${result.isoa2},${result.isoa3},${result.ison3},${result.name}">${result.name}</option>`);
     }
     $("#dropdown").val(`${state.currentCountry.isoa2},${state.currentCountry.isoa3},${state.currentCountry.ison3},${state.currentCountry.name}`);
+    onDropdownSelect();
 }
 
 //SELECT DROPDOWN
@@ -74,9 +75,10 @@ function onDropdownSelect()
 {
     [state.currentCountry.isoa2, state.currentCountry.isoa3, state.currentCountry.ison3, state.currentCountry.name] = $("#dropdown").val().split(',');
     drawCountryBorder();
+    updateFlag();
 }
 
-//GREY OUT MAP
+//DRAW COUNTRY BORDER
 function drawCountryBorder()
 {
     if (state.currentGraphics.border !== null) { state.currentGraphics.border.remove(); }
@@ -88,6 +90,17 @@ function drawCountryBorder()
             map.fitBounds(state.currentGraphics.border.getBounds());
         }
     }
+}
+
+//UPDATE FLAG
+function updateFlag()
+{
+    if (state.currentCountry.isoa2 === "--") { return; }
+    $("#flag").attr("src", "assets/unknown_flag.png");
+    $.ajax({ url: "php/restcountries/getFlagFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } }).then((restCountriesResult) => 
+    {
+        if (restCountriesResult) { $("#flag").attr("src", restCountriesResult.data.flags.png); }
+    });
 }
 
 //ROUND TO DECIMAL PLACE
@@ -129,36 +142,80 @@ function onMoveMap()
 //OPEN NATIONAL OVERVIEW
 async function openNationalOverview()
 {
+    $("#pre-load-modal").removeClass("fade-out");
+    $("#modal-title").html("National Overview");
+    const html = await $.get("html/national_overview.html");
+    $("#modal-inner").append(html);
     $("#modal").modal("show");
-    const restCountriesResult = await $.ajax({ url: "php/restcountries/getOverviewFromISO3.php", type: "GET", dataType: "json", data: { iso3: state.currentCountry.isoa3 } });
+    $("#isoa2").html(state.currentCountry.isoa2);
+    $("#isoa3").html(state.currentCountry.isoa3);
+    $("#ison3").html(state.currentCountry.ison3);
+    const restCountriesResult = await $.ajax({ url: "php/restcountries/getOverviewFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } });
+    console.log(restCountriesResult);
+    //COMMON NAME
+    //OFFICAL NAME
+    //ISO A2/A3/N3
+    //REGION
+    //CONTINENT
+    //CAPITAL
+    //AREA
+    //INTERNATIONAL STATUS
+    //POPULATION
+    //ROADS
+    //CURRENCIES
+    //LANGUAGES
+    $("#pre-load-modal").addClass("fade-out");
 }
 
 //OPEN EXCHANGE RATE
 async function openExchangeRate()
 {
-
+    $("#pre-load-modal").removeClass("fade-out");
+    $("#modal-title").html("Exchange Rate");
+    $("#modal").modal("show");
+    $("#pre-load-modal").addClass("fade-out");
 }
 
 //OPEN TIME ZONE CONVERSION
 async function openTimeZoneConversion()
 {
-
+    $("#pre-load-modal").removeClass("fade-out");
+    $("#modal-title").html("Time Zone Conversion");
+    $("#modal").modal("show");
+    $("#pre-load-modal").addClass("fade-out");
 }
 
 //OPEN LATEST NEWS
 async function openLatestNews()
 {
-
+    $("#pre-load-modal").removeClass("fade-out");
+    $("#modal-title").html("Latest News");
+    $("#modal").modal("show");
+    $("#pre-load-modal").addClass("fade-out");
 }
 
 //OPEN WIKIPEDIA ARTICLE
 async function openWikipediaArticle()
 {
-
+    $("#pre-load-modal").removeClass("fade-out");
+    $("#modal-title").html("Wikipedia Article");
+    $("#modal").modal("show");
+    $("#pre-load-modal").addClass("fade-out");
 }
 
 //OPEN LOCAL FAVOURITES
 async function openLocalFavourites()
+{
+    $("#pre-load-modal").removeClass("fade-out");
+    // $("#flag").css("display", "none");
+    $("#modal-title").html("Local Favourites");
+    $("#pre-load-modal").removeClass("fade-out");
+    $("#modal").modal("show");
+    $("#pre-load-modal").addClass("fade-out");
+}
+
+//OPEN LOCAL INFORMATION
+async function openLocalInformation()
 {
 
 }
@@ -166,7 +223,8 @@ async function openLocalFavourites()
 //CLOSE MODAL
 function closeModal()
 {
-    
+    $("#modal-title").html("");
+    $("#modal-inner").empty();
 }
 
 //CREATE EASY BUTTONS
@@ -187,11 +245,11 @@ $(document).ready(async () =>
     //await getCurrentCountry();
     populateDropdown(); 
     $("#dropdown").change(onDropdownSelect);
-    drawCountryBorder();
     updateLatLng(state.currentLatLng);
     map.on("click", (event) => { onLocalSelect(event.latlng); } );
     map.on("move", onMoveMap);
     createEasyButtons();
+    $("#modal").on("hidden.bs.modal", closeModal);
     $("#latlng-search").click(onLatLngSearch);
     $("#pre-load-page").addClass("fade-out");
 });
