@@ -126,22 +126,58 @@ function onMoveMap()
     if (state.allowLatLngUpdate) { updateLatLng(map.getCenter()); }
 }
 
-//OPEN MODAL
-function openModal()
+//OPEN NATIONAL OVERVIEW
+async function openNationalOverview()
 {
     $("#modal").modal("show");
+    const restCountriesResult = await $.ajax({ url: "php/restcountries/getOverviewFromISO3.php", type: "GET", dataType: "json", data: { iso3: state.currentCountry.isoa3 } });
+}
+
+//OPEN EXCHANGE RATE
+async function openExchangeRate()
+{
+
+}
+
+//OPEN TIME ZONE CONVERSION
+async function openTimeZoneConversion()
+{
+
+}
+
+//OPEN LATEST NEWS
+async function openLatestNews()
+{
+
+}
+
+//OPEN WIKIPEDIA ARTICLE
+async function openWikipediaArticle()
+{
+
+}
+
+//OPEN LOCAL FAVOURITES
+async function openLocalFavourites()
+{
+
 }
 
 //CLOSE MODAL
 function closeModal()
 {
-
+    
 }
 
 //CREATE EASY BUTTONS
 function createEasyButtons()
 {
-    L.easyButton("fa-solid fa-globe", openModal).addTo(map);
+    L.easyButton("fa-solid fa-globe", openNationalOverview).addTo(map);
+    L.easyButton("fa-solid fa-money-bill-transfer", openExchangeRate).addTo(map);
+    L.easyButton("fa-solid fa-clock-rotate-left", openTimeZoneConversion).addTo(map);
+    L.easyButton("fa-solid fa-newspaper", openLatestNews).addTo(map);
+    L.easyButton("fa-brands fa-wikipedia-w", openWikipediaArticle).addTo(map);
+    L.easyButton("fa-solid fa-heart", openLocalFavourites).addTo(map);
 }
 
 //DOCUMENT READY
