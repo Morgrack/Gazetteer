@@ -211,6 +211,8 @@ async function openLocalFavourites()
     $("#pre-load-modal").removeClass("fade-out");
     // $("#flag").css("display", "none");
     $("#modal-title").html("Local Favourites");
+    const html = await $.get("html/local_favourites.html");
+    $("#modal-inner").append(html);
     $("#pre-load-modal").removeClass("fade-out");
     $("#modal").modal("show");
     $("#pre-load-modal").addClass("fade-out");
