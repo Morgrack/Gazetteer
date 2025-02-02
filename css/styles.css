@@ -55,6 +55,11 @@ body
     min-height: 175px;
 }
 
+.conversion-container
+{
+    height: 125px;
+}
+
 .pre-load 
 {
     position: absolute;

@@ -172,6 +172,8 @@ async function openExchangeRate()
 {
     $("#pre-load-modal").removeClass("fade-out");
     $("#modal-title").html("Exchange Rate");
+    const html = await $.get("html/exchange_rate.html");
+    $("#modal-inner").append(html);
     $("#modal").modal("show");
     $("#pre-load-modal").addClass("fade-out");
 }
