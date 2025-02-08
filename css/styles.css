@@ -50,14 +50,19 @@ body
     margin-right: 10px;
 }
 
-.modal-body
+#modal-body
 {
     min-height: 175px;
 }
 
-.conversion-container
+#exchange-rate
 {
     height: 125px;
+}
+
+.font-size-20   
+{
+    font-size: 20px;
 }
 
 .pre-load 

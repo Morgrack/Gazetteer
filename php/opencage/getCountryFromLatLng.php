@@ -22,7 +22,7 @@ if ($output["status"]["code"] === 200)
         $output["data"] = null;
     }
 }
-$output["status"]["returnedIn"] = intval((microtime(true) - $executionStartTime) * 1000) . " ms";
+$output["status"]["returnedIn"] = intval(value: (microtime(as_float: true) - $executionStartTime) * 1000) . " ms";
 echo json_encode(value: $output);
 
 ?>

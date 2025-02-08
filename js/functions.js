@@ -84,7 +84,7 @@ function drawCountryBorder()
     if (state.currentGraphics.border !== null) { state.currentGraphics.border.remove(); }
     for (let feature of state.geoJSON.features)
     {
-        if (feature.properties.iso_a2 === state.currentCountry.isoa2)
+        if (feature.properties.iso_a3 === state.currentCountry.isoa3)
         {
             state.currentGraphics.border = L.geoJSON(feature, { color: "black", dashArray: 5, fillOpacity: 0, weight: 3 }).addTo(map);
             map.fitBounds(state.currentGraphics.border.getBounds());
@@ -95,7 +95,7 @@ function drawCountryBorder()
 //UPDATE FLAG
 function updateFlag()
 {
-    if (state.currentCountry.isoa2 === "--") { return; }
+    if (state.currentCountry.isoa3 === "--") { return; }
     $("#flag").attr("src", "assets/unknown_flag.png");
     $.ajax({ url: "php/restcountries/getFlagFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } }).then((restCountriesResult) => 
     {
@@ -142,46 +142,50 @@ function onMoveMap()
 //OPEN NATIONAL OVERVIEW
 async function openNationalOverview()
 {
-    $("#pre-load-modal").removeClass("fade-out");
     $("#modal-title").html("National Overview");
-    const html = await $.get("html/national_overview.html");
-    $("#modal-inner").append(html);
+    $("#modal-container").append(await $.get("html/national_overview.html"));
     $("#modal").modal("show");
-    $("#isoa2").html(state.currentCountry.isoa2);
-    $("#isoa3").html(state.currentCountry.isoa3);
-    $("#ison3").html(state.currentCountry.ison3);
+    $("#iso").html(`${state.currentCountry.isoa2} / ${state.currentCountry.isoa3} / ${state.currentCountry.ison3}`);
     const restCountriesResult = await $.ajax({ url: "php/restcountries/getOverviewFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } });
-    console.log(restCountriesResult);
-    //COMMON NAME
-    //OFFICAL NAME
-    //ISO A2/A3/N3
-    //REGION
-    //CONTINENT
-    //CAPITAL
-    //AREA
-    //INTERNATIONAL STATUS
-    //POPULATION
-    //ROADS
-    //CURRENCIES
-    //LANGUAGES
+    if (restCountriesResult.data)
+    {
+        $("#common-name").html(restCountriesResult.data.name.common);
+        $("#official-name").html(restCountriesResult.data.name.official);
+        $("#diplomatic-status").html(`${restCountriesResult.data.independent ? "Sovereign" : "Contested"}, ${restCountriesResult.data.unMember ? "UN Member" : "Non-UN Member"}`);
+        $("#continents").html(restCountriesResult.data.continents.join(", "));
+        $("#region").html(restCountriesResult.data.region);
+        $("#subregion").html(restCountriesResult.data.subregion);
+        $("#area").html(`${restCountriesResult.data.area}km&sup2`);
+        $("#capital").html(restCountriesResult.data.capital[0]);
+        $("#currencies").html(Object.keys(restCountriesResult.data.currencies).join(", "));
+        $("#languages").html(Object.values(restCountriesResult.data.languages).join(", "));
+        $("#population").html(restCountriesResult.data.population);
+        $("#roads").html(`Drives on ${restCountriesResult.data.car.side}`);
+        $("#time-zones").html(restCountriesResult.data.timezones.join(", "));
+    }
     $("#pre-load-modal").addClass("fade-out");
 }
 
 //OPEN EXCHANGE RATE
 async function openExchangeRate()
 {
-    $("#pre-load-modal").removeClass("fade-out");
     $("#modal-title").html("Exchange Rate");
-    const html = await $.get("html/exchange_rate.html");
-    $("#modal-inner").append(html);
+    $("#modal-container").append(await $.get("html/exchange_rate.html"));
     $("#modal").modal("show");
+    const [restCountriesCurrentCurrency, restCountriesAllCurrencies, openExchangeRatesResult] = await Promise.all([
+        $.ajax({ url: "php/restcountries/getCurrencyFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } }),
+        $.ajax({ url: "php/restCountries/getCurrencies.php", type: "GET", dataType: "json" }),
+        $.ajax({ url: "php/openexchangerates/getExchangeRates.php", type: "GET", dataType: "json" })
+    ]);
+    console.log(restCountriesCurrentCurrency);
+    console.log(restCountriesAllCurrencies);
+    console.log(openExchangeRatesResult);
     $("#pre-load-modal").addClass("fade-out");
 }
 
 //OPEN TIME ZONE CONVERSION
 async function openTimeZoneConversion()
 {
-    $("#pre-load-modal").removeClass("fade-out");
     $("#modal-title").html("Time Zone Conversion");
     $("#modal").modal("show");
     $("#pre-load-modal").addClass("fade-out");
@@ -190,7 +194,6 @@ async function openTimeZoneConversion()
 //OPEN LATEST NEWS
 async function openLatestNews()
 {
-    $("#pre-load-modal").removeClass("fade-out");
     $("#modal-title").html("Latest News");
     $("#modal").modal("show");
     $("#pre-load-modal").addClass("fade-out");
@@ -199,7 +202,6 @@ async function openLatestNews()
 //OPEN WIKIPEDIA ARTICLE
 async function openWikipediaArticle()
 {
-    $("#pre-load-modal").removeClass("fade-out");
     $("#modal-title").html("Wikipedia Article");
     $("#modal").modal("show");
     $("#pre-load-modal").addClass("fade-out");
@@ -208,11 +210,9 @@ async function openWikipediaArticle()
 //OPEN LOCAL FAVOURITES
 async function openLocalFavourites()
 {
-    $("#pre-load-modal").removeClass("fade-out");
-    // $("#flag").css("display", "none");
+    $("#flag").css("display", "none");
     $("#modal-title").html("Local Favourites");
-    const html = await $.get("html/local_favourites.html");
-    $("#modal-inner").append(html);
+    $("#modal-container").append(await $.get("html/local_favourites.html"));
     $("#pre-load-modal").removeClass("fade-out");
     $("#modal").modal("show");
     $("#pre-load-modal").addClass("fade-out");
@@ -227,8 +227,10 @@ async function openLocalInformation()
 //CLOSE MODAL
 function closeModal()
 {
+    $("#flag").css("display", "inline");
     $("#modal-title").html("");
-    $("#modal-inner").empty();
+    $("#modal-container").empty();
+    $("#pre-load-modal").removeClass("fade-out");
 }
 
 //CREATE EASY BUTTONS
@@ -257,21 +259,3 @@ $(document).ready(async () =>
     $("#latlng-search").click(onLatLngSearch);
     $("#pre-load-page").addClass("fade-out");
 });
-
-//LOCAL INFORMATION SCROLLABLE (e.g. weather, landmarks, also changes current nation to one selected if possible, thereby greying out all others)
-
-//TOP RIGHT FILTERS SHOW WORLDWIDE UNLESS COUNTRY IS SELECTED
-
-//of each modal top black bar: flag, title
-
-//overview-modal (black and white table)
-
-//time-modal (black and white table)
-
-//exchange-modal (simple dropdown box to dropdown box with text)
-
-//news-modal (laid out boxes with red outlines)
-
-//wikipedia-modal (just the article)
-
-//favourites-modal (name, date of saving, latitude, longitude)
