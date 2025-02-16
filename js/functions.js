@@ -3,6 +3,7 @@ const state =
 {
     allowLatLngUpdate: true,
     currentCountry: { isoa2: "AF", isoa3: "AFG", ison3: "004", name: "Afghanistan" },
+    currentExchangeRates: { },
     currentGraphics: { border: null },
     currentLatLng: { lat: 34.52, lng: 69.18 },
     geoJSON: {}
@@ -139,6 +140,16 @@ function onMoveMap()
     if (state.allowLatLngUpdate) { updateLatLng(map.getCenter()); }
 }
 
+function onExchangeRateChange() //TODO: refactor this
+{
+    const inputCurrency = $("#exchange-rate-input-dropdown").val();
+    const outputCurrency = $("#exchange-rate-output-dropdown").val();
+    $("#exchange-rate-input-symbol").html(state.currentExchangeRates[inputCurrency].symbol);
+    $("#exchange-rate-output-symbol").html(state.currentExchangeRates[outputCurrency].symbol);
+    const outputValue = roundToDecimalPlace($("#exchange-rate-input-text").val()/state.currentExchangeRates[inputCurrency].rate*state.currentExchangeRates[outputCurrency].rate, 2);
+    $("#exchange-rate-output-text").val(outputValue);
+}
+
 //OPEN NATIONAL OVERVIEW
 async function openNationalOverview()
 {
@@ -177,9 +188,37 @@ async function openExchangeRate()
         $.ajax({ url: "php/restCountries/getCurrencies.php", type: "GET", dataType: "json" }),
         $.ajax({ url: "php/openexchangerates/getExchangeRates.php", type: "GET", dataType: "json" })
     ]);
-    console.log(restCountriesCurrentCurrency);
-    console.log(restCountriesAllCurrencies);
-    console.log(openExchangeRatesResult);
+    state.currentExchangeRates = {}
+    for (let result of restCountriesAllCurrencies.data)
+    {
+        for (let currency of Object.keys(result.currencies))
+        {
+            if (openExchangeRatesResult.data.rates.hasOwnProperty(currency))
+            {
+                state.currentExchangeRates[currency] =
+                {
+                    code: currency,
+                    name: result.currencies[currency].name,
+                    symbol: result.currencies[currency].symbol,
+                    rate: openExchangeRatesResult.data.rates[currency]
+                }
+            }
+        }
+    }
+    const sorted = Object.values(state.currentExchangeRates).sort((a, b) => { return a.code > b.code ? 1 : -1 });
+    for (let result of sorted)
+    {
+        $("#exchange-rate-input-dropdown").append(`<option value="${result.code}">${result.code} (${result.name})</option>`);
+        $("#exchange-rate-output-dropdown").append(`<option value="${result.code}">${result.code} (${result.name})</option>`);
+    }
+    const current = Object.keys(restCountriesCurrentCurrency.data.currencies)[0];
+    $("#exchange-rate-input-dropdown").val(current);
+    $("#exchange-rate-output-dropdown").val("USD");
+    $("#exchange-rate-input-text").val("1.00");
+    $("#exchange-rate-input-text").change(onExchangeRateChange);
+    $("#exchange-rate-input-dropdown").change(onExchangeRateChange);
+    $("#exchange-rate-output-dropdown").change(onExchangeRateChange);
+    onExchangeRateChange();
     $("#pre-load-modal").addClass("fade-out");
 }
 
