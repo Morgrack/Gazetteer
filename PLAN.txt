@@ -1,0 +1,6 @@
+1. Time zone
+2. Latest news
+3. Wikipedia
+4. Local information
+5. Forecast
+6. Markercluster

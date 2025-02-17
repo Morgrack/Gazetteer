@@ -3,7 +3,6 @@ const state =
 {
     allowLatLngUpdate: true,
     currentCountry: { isoa2: "AF", isoa3: "AFG", ison3: "004", name: "Afghanistan" },
-    currentExchangeRates: { },
     currentGraphics: { border: null },
     currentLatLng: { lat: 34.52, lng: 69.18 },
     geoJSON: {}
@@ -140,13 +139,13 @@ function onMoveMap()
     if (state.allowLatLngUpdate) { updateLatLng(map.getCenter()); }
 }
 
-function onExchangeRateChange() //TODO: refactor this
+function onExchangeRateChange(currentExchangeRates) //TODO: refactor this
 {
     const inputCurrency = $("#exchange-rate-input-dropdown").val();
     const outputCurrency = $("#exchange-rate-output-dropdown").val();
-    $("#exchange-rate-input-symbol").html(state.currentExchangeRates[inputCurrency].symbol);
-    $("#exchange-rate-output-symbol").html(state.currentExchangeRates[outputCurrency].symbol);
-    const outputValue = roundToDecimalPlace($("#exchange-rate-input-text").val()/state.currentExchangeRates[inputCurrency].rate*state.currentExchangeRates[outputCurrency].rate, 2);
+    $("#exchange-rate-input-symbol").html(currentExchangeRates[inputCurrency].symbol);
+    $("#exchange-rate-output-symbol").html(currentExchangeRates[outputCurrency].symbol);
+    const outputValue = roundToDecimalPlace($("#exchange-rate-input-text").val()/currentExchangeRates[inputCurrency].rate*currentExchangeRates[outputCurrency].rate, 2);
     $("#exchange-rate-output-text").val(outputValue);
 }
 
@@ -188,14 +187,14 @@ async function openExchangeRate()
         $.ajax({ url: "php/restCountries/getCurrencies.php", type: "GET", dataType: "json" }),
         $.ajax({ url: "php/openexchangerates/getExchangeRates.php", type: "GET", dataType: "json" })
     ]);
-    state.currentExchangeRates = {}
+    const currentExchangeRates = {}
     for (let result of restCountriesAllCurrencies.data)
     {
         for (let currency of Object.keys(result.currencies))
         {
             if (openExchangeRatesResult.data.rates.hasOwnProperty(currency))
             {
-                state.currentExchangeRates[currency] =
+                currentExchangeRates[currency] =
                 {
                     code: currency,
                     name: result.currencies[currency].name,
@@ -205,7 +204,7 @@ async function openExchangeRate()
             }
         }
     }
-    const sorted = Object.values(state.currentExchangeRates).sort((a, b) => { return a.code > b.code ? 1 : -1 });
+    const sorted = Object.values(currentExchangeRates).sort((a, b) => { return a.code > b.code ? 1 : -1 });
     for (let result of sorted)
     {
         $("#exchange-rate-input-dropdown").append(`<option value="${result.code}">${result.code} (${result.name})</option>`);
@@ -215,10 +214,10 @@ async function openExchangeRate()
     $("#exchange-rate-input-dropdown").val(current);
     $("#exchange-rate-output-dropdown").val("USD");
     $("#exchange-rate-input-text").val("1.00");
-    $("#exchange-rate-input-text").change(onExchangeRateChange);
-    $("#exchange-rate-input-dropdown").change(onExchangeRateChange);
-    $("#exchange-rate-output-dropdown").change(onExchangeRateChange);
-    onExchangeRateChange();
+    $("#exchange-rate-input-text").change(() => { onExchangeRateChange(currentExchangeRates); });
+    $("#exchange-rate-input-dropdown").change(() => { onExchangeRateChange(currentExchangeRates); });
+    $("#exchange-rate-output-dropdown").change(() => { onExchangeRateChange(currentExchangeRates); });
+    onExchangeRateChange(currentExchangeRates);
     $("#pre-load-modal").addClass("fade-out");
 }
 
@@ -226,7 +225,28 @@ async function openExchangeRate()
 async function openTimeZoneConversion()
 {
     $("#modal-title").html("Time Zone Conversion");
+    $("#modal-container").append(await $.get("html/time_zone_conversion.html"));
     $("#modal").modal("show");
+    const [restCountriesCurrentTimeZone, restCountriesAllTimeZones] = await Promise.all([
+        $.ajax({ url: "php/restcountries/getTimeZoneFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } }),
+        $.ajax({ url: "php/restCountries/getTimeZones.php", type: "GET", dataType: "json" })    
+    ]);
+    const timeZones = {}
+    for (let result of restCountriesAllTimeZones.data)
+    {
+        for (let timeZone of result.timezones)
+        {
+            timeZones[timeZone] = timeZone;
+        }
+    }
+    for (let result of Object.values(timeZones))
+    {
+        $("#time-conversion-input-dropdown").append(`<option value="${result}">${result}</option>`);
+        $("#time-conversion-output-dropdown").append(`<option value="${result}">${result}</option>`);
+    }
+    const current = restCountriesCurrentTimeZone.data.timezones[0];
+    $("#time-conversion-input-dropdown").val(current);
+    $("#time-conversion-output-dropdown").val(current);
     $("#pre-load-modal").addClass("fade-out");
 }
 

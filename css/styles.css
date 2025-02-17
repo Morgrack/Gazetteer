@@ -55,7 +55,7 @@ body
     min-height: 175px;
 }
 
-#exchange-rate
+#exchange-rate, #time-zone-conversion
 {
     height: 125px;
 }
