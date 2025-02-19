@@ -244,7 +244,7 @@ async function openExchangeRate()
                 }
             }
         }
-        const sorted = Object.values(currentExchangeRates).sort((a, b) => { return a.code > b.code ? 1 : -1 });
+        const sorted = Object.values(collated).sort((a, b) => { return a.code > b.code ? 1 : -1 });
         for (let result of sorted)
         {
             $("#exchange-rate-input-dropdown").append(`<option value="${result.code}">${result.code} (${result.name})</option>`);
@@ -263,7 +263,7 @@ async function openExchangeRate()
 }
 
 //OPEN TIME ZONE CONVERSION
-async function openTimeZoneConversion()
+async function openTimeZoneConversion() //TODO add tick box for keep current time and
 {
     $("#modal-title").html("Time Zone Conversion");
     $("#modal-container").append(await $.get("html/time_zone_conversion.html"));

@@ -1,4 +1,4 @@
-1. Time zone
+1. Time zone ✓
 2. Latest news (Wednesday)
 3. Wikipedia (Wednesday)
 4. Local information (Thursday)
