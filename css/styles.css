@@ -65,6 +65,16 @@ body
     font-size: 20px;
 }
 
+.latest-news-title
+{
+    font-weight: bold;
+}
+
+.latest-news-categories
+{
+    color: grey
+}
+
 .pre-load 
 {
     position: absolute;

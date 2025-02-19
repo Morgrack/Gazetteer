@@ -253,7 +253,7 @@ async function openExchangeRate()
         const current = Object.keys(restCountriesCurrentCurrency.data.currencies)[0];
         $("#exchange-rate-input-dropdown").val(current);
         $("#exchange-rate-output-dropdown").val("USD");
-        $("#exchange-rate-input-text").val("1.00");
+        $("#exchange-rate-input-text").val("100.00");
         $("#exchange-rate-input-text").change(() => { onExchangeRateChange(collated); });
         $("#exchange-rate-input-dropdown").change(() => { onExchangeRateChange(collated); });
         $("#exchange-rate-output-dropdown").change(() => { onExchangeRateChange(collated); });
@@ -306,6 +306,7 @@ async function openTimeZoneConversion() //TODO add tick box for keep current tim
 async function openLatestNews()
 {
     $("#modal-title").html("Latest News");
+    $("#modal-container").append(await $.get("html/latest_news.html"));
     $("#modal").modal("show");
     $("#pre-load-modal").addClass("fade-out");
 }
