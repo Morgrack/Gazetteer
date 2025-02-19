@@ -95,8 +95,8 @@ function drawCountryBorder()
 //UPDATE FLAG
 function updateFlag()
 {
-    if (state.currentCountry.isoa3 === "--") { return; }
     $("#flag").attr("src", "assets/unknown_flag.png");
+    if (state.currentCountry.isoa3 === "--") { return; }
     $.ajax({ url: "php/restcountries/getFlagFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } }).then((restCountriesResult) => 
     {
         if (restCountriesResult) { $("#flag").attr("src", restCountriesResult.data.flags.png); }
@@ -139,14 +139,52 @@ function onMoveMap()
     if (state.allowLatLngUpdate) { updateLatLng(map.getCenter()); }
 }
 
-function onExchangeRateChange(currentExchangeRates) //TODO: refactor this
+function onExchangeRateChange(collated)
 {
     const inputCurrency = $("#exchange-rate-input-dropdown").val();
     const outputCurrency = $("#exchange-rate-output-dropdown").val();
-    $("#exchange-rate-input-symbol").html(currentExchangeRates[inputCurrency].symbol);
-    $("#exchange-rate-output-symbol").html(currentExchangeRates[outputCurrency].symbol);
-    const outputValue = roundToDecimalPlace($("#exchange-rate-input-text").val()/currentExchangeRates[inputCurrency].rate*currentExchangeRates[outputCurrency].rate, 2);
+    $("#exchange-rate-input-symbol").html(collated[inputCurrency].symbol);
+    $("#exchange-rate-output-symbol").html(collated[outputCurrency].symbol);
+    const outputValue = roundToDecimalPlace($("#exchange-rate-input-text").val()/collated[inputCurrency].rate*collated[outputCurrency].rate, 2);
     $("#exchange-rate-output-text").val(outputValue);
+}
+
+function offsetMinutes(totalMinutes, offset)
+{
+    let newTime = (totalMinutes + offset) % 1440; //1440 is the total minutes in one day
+    if (newTime < 0) { newTime = 1440 + newTime; } //if time is negative, how much it should take away from 24:00
+    return newTime;
+}
+
+function digitalTimeToMinutes(digitalTime)
+{ 
+    const regex = /^[+-]?\d{2}:\d{2}$/;
+    if (!regex.test(digitalTime)) { return 0; }
+    let negative = digitalTime[0] === "-";
+    digitalTime = digitalTime.slice(-5);
+    const [hours, minutes] = digitalTime.split(":");
+    const totalMinutes = Number(hours)*60 + Number(minutes);
+    return negative ? 0 - totalMinutes : totalMinutes;
+}
+
+function minutesToDigitalTime(totalMinutes)
+{
+    const negative = totalMinutes < 0;
+    totalMinutes = Math.abs(totalMinutes);
+    const hours = ((totalMinutes - (totalMinutes % 60)) / 60).toString().padStart(2, '0');
+    const minutes = (totalMinutes % 60).toString().padStart(2, '0');
+    return negative ? "-" + hours + ":" + minutes : hours + ":" + minutes;
+}
+
+function onTimeZoneChange()
+{
+    const inputUTCOffset = digitalTimeToMinutes($("#time-conversion-input-dropdown").val().slice(-6));
+    const outputUTCOffset = digitalTimeToMinutes($("#time-conversion-output-dropdown").val().slice(-6));
+    const inputTime = digitalTimeToMinutes($("#time-conversion-input-text").val().slice(-6));
+    const offsetDifference = outputUTCOffset - inputUTCOffset;
+    let newTime = offsetMinutes(inputTime, offsetDifference);
+    const outputTime = minutesToDigitalTime(newTime); 
+    $("#time-conversion-output-text").val(outputTime);
 }
 
 //OPEN NATIONAL OVERVIEW
@@ -156,7 +194,7 @@ async function openNationalOverview()
     $("#modal-container").append(await $.get("html/national_overview.html"));
     $("#modal").modal("show");
     $("#iso").html(`${state.currentCountry.isoa2} / ${state.currentCountry.isoa3} / ${state.currentCountry.ison3}`);
-    const restCountriesResult = await $.ajax({ url: "php/restcountries/getOverviewFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } });
+    const restCountriesResult = await $.ajax({ url: "php/restcountries/getOverviewFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } }); //TODO: add UN data for GDP
     if (restCountriesResult.data)
     {
         $("#common-name").html(restCountriesResult.data.name.common);
@@ -187,37 +225,40 @@ async function openExchangeRate()
         $.ajax({ url: "php/restCountries/getCurrencies.php", type: "GET", dataType: "json" }),
         $.ajax({ url: "php/openexchangerates/getExchangeRates.php", type: "GET", dataType: "json" })
     ]);
-    const currentExchangeRates = {}
-    for (let result of restCountriesAllCurrencies.data)
+    if (restCountriesCurrentCurrency.data && restCountriesAllCurrencies.data && openExchangeRatesResult.data)
     {
-        for (let currency of Object.keys(result.currencies))
+        const collated = {}
+        for (let result of restCountriesAllCurrencies.data)
         {
-            if (openExchangeRatesResult.data.rates.hasOwnProperty(currency))
+            for (let currency of Object.keys(result.currencies))
             {
-                currentExchangeRates[currency] =
+                if (openExchangeRatesResult.data.rates.hasOwnProperty(currency))
                 {
-                    code: currency,
-                    name: result.currencies[currency].name,
-                    symbol: result.currencies[currency].symbol,
-                    rate: openExchangeRatesResult.data.rates[currency]
+                    collated[currency] =
+                    {
+                        code: currency,
+                        name: result.currencies[currency].name,
+                        symbol: result.currencies[currency].symbol,
+                        rate: openExchangeRatesResult.data.rates[currency]
+                    }
                 }
             }
         }
+        const sorted = Object.values(currentExchangeRates).sort((a, b) => { return a.code > b.code ? 1 : -1 });
+        for (let result of sorted)
+        {
+            $("#exchange-rate-input-dropdown").append(`<option value="${result.code}">${result.code} (${result.name})</option>`);
+            $("#exchange-rate-output-dropdown").append(`<option value="${result.code}">${result.code} (${result.name})</option>`);
+        }
+        const current = Object.keys(restCountriesCurrentCurrency.data.currencies)[0];
+        $("#exchange-rate-input-dropdown").val(current);
+        $("#exchange-rate-output-dropdown").val("USD");
+        $("#exchange-rate-input-text").val("1.00");
+        $("#exchange-rate-input-text").change(() => { onExchangeRateChange(collated); });
+        $("#exchange-rate-input-dropdown").change(() => { onExchangeRateChange(collated); });
+        $("#exchange-rate-output-dropdown").change(() => { onExchangeRateChange(collated); });
+        onExchangeRateChange(collated);
     }
-    const sorted = Object.values(currentExchangeRates).sort((a, b) => { return a.code > b.code ? 1 : -1 });
-    for (let result of sorted)
-    {
-        $("#exchange-rate-input-dropdown").append(`<option value="${result.code}">${result.code} (${result.name})</option>`);
-        $("#exchange-rate-output-dropdown").append(`<option value="${result.code}">${result.code} (${result.name})</option>`);
-    }
-    const current = Object.keys(restCountriesCurrentCurrency.data.currencies)[0];
-    $("#exchange-rate-input-dropdown").val(current);
-    $("#exchange-rate-output-dropdown").val("USD");
-    $("#exchange-rate-input-text").val("1.00");
-    $("#exchange-rate-input-text").change(() => { onExchangeRateChange(currentExchangeRates); });
-    $("#exchange-rate-input-dropdown").change(() => { onExchangeRateChange(currentExchangeRates); });
-    $("#exchange-rate-output-dropdown").change(() => { onExchangeRateChange(currentExchangeRates); });
-    onExchangeRateChange(currentExchangeRates);
     $("#pre-load-modal").addClass("fade-out");
 }
 
@@ -231,22 +272,33 @@ async function openTimeZoneConversion()
         $.ajax({ url: "php/restcountries/getTimeZoneFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } }),
         $.ajax({ url: "php/restCountries/getTimeZones.php", type: "GET", dataType: "json" })    
     ]);
-    const timeZones = {}
-    for (let result of restCountriesAllTimeZones.data)
+    if (restCountriesCurrentTimeZone.data && restCountriesAllTimeZones.data)
     {
-        for (let timeZone of result.timezones)
+        const timeZones = {}
+        for (let result of restCountriesAllTimeZones.data)
         {
-            timeZones[timeZone] = timeZone;
+            for (let timeZone of result.timezones)
+            {
+                timeZones[timeZone] = timeZone;
+            }
         }
+        for (let result of Object.values(timeZones))
+        {
+            $("#time-conversion-input-dropdown").append(`<option value="${result}">${result}</option>`);
+            $("#time-conversion-output-dropdown").append(`<option value="${result}">${result}</option>`);
+        }
+        const current = restCountriesCurrentTimeZone.data.timezones[0];
+        $("#time-conversion-input-dropdown").val(current);
+        $("#time-conversion-output-dropdown").val(current);
+        const offset = digitalTimeToMinutes(current.slice(-6));
+        const newTime = offsetMinutes(Math.floor(Date.now() / 60000), offset);
+        const newTimeFormatted = minutesToDigitalTime(newTime);
+        $("#time-conversion-input-text").val(newTimeFormatted);
+        $("#time-conversion-input-text").change(onTimeZoneChange);
+        $("#time-conversion-input-dropdown").change(onTimeZoneChange);
+        $("#time-conversion-output-dropdown").change(onTimeZoneChange);
+        onTimeZoneChange();
     }
-    for (let result of Object.values(timeZones))
-    {
-        $("#time-conversion-input-dropdown").append(`<option value="${result}">${result}</option>`);
-        $("#time-conversion-output-dropdown").append(`<option value="${result}">${result}</option>`);
-    }
-    const current = restCountriesCurrentTimeZone.data.timezones[0];
-    $("#time-conversion-input-dropdown").val(current);
-    $("#time-conversion-output-dropdown").val(current);
     $("#pre-load-modal").addClass("fade-out");
 }
 
