@@ -67,7 +67,14 @@ body
 
 .latest-news-title
 {
+    color: black;
     font-weight: bold;
+    text-decoration: none;
+}
+
+.latest-news-title:hover
+{
+    text-decoration: underline;
 }
 
 .latest-news-categories

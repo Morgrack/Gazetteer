@@ -6,7 +6,8 @@
 6. Markercluster (Saturday)
 7. DBNomics data (Sunday)
 8. Favicon (Sunday)
-9. Plan out finishing Company Directory app before March to try and get ahead
+9. Double-check all PHP routines and bad connection handling
+10. Plan out finishing Company Directory app before March to try and get ahead
 
 MAR: Company Directory (6 days), Kelly's Kollars (2 days)
 APR: Bounding Box Tool (2 days), Platoomer Bot (11 days)
