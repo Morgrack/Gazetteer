@@ -60,6 +60,11 @@ body
     height: 125px;
 }
 
+#wikipedia-article-link
+{
+    text-decoration: none;
+}
+
 .font-size-20   
 {
     font-size: 20px;

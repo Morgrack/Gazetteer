@@ -263,7 +263,7 @@ async function openExchangeRate()
 }
 
 //OPEN TIME ZONE CONVERSION
-async function openTimeZoneConversion() //TODO add tick box for keep current time and
+async function openTimeZoneConversion() //TODO add tick box for keep current time
 {
     $("#modal-title").html("Time Zone Conversion");
     $("#modal-container").append(await $.get("html/time_zone_conversion.html"));
@@ -282,7 +282,8 @@ async function openTimeZoneConversion() //TODO add tick box for keep current tim
                 timeZones[timeZone] = timeZone;
             }
         }
-        for (let result of Object.values(timeZones))
+        const sorted = Object.values(timeZones).sort((a, b) => { return a > b ? 1 : -1 });
+        for (let result of sorted)
         {
             $("#time-conversion-input-dropdown").append(`<option value="${result}">${result}</option>`);
             $("#time-conversion-output-dropdown").append(`<option value="${result}">${result}</option>`);
@@ -308,18 +309,16 @@ async function openLatestNews()
     $("#modal-title").html("Latest News");
     $("#modal").modal("show");
     const newsDataResult = await $.ajax({ url: "php/newsdata/getNewsFromISOA2.php", type: "GET", dataType: "json", data: { isoa2: state.currentCountry.isoa2 } });
-    console.log(newsDataResult);
     if (newsDataResult.data)
     {
         const html = $(await $.get("html/latest_news.html"));
-        console.log(html);
         for (let result of newsDataResult.data)
         {
             const newElement = $(html[0].outerHTML);
             newElement.find(".latest-news-image").attr("src", result.image_url);
             newElement.find(".latest-news-title").attr("href", result.source_url);
             newElement.find(".latest-news-title").html(result.title);
-            newElement.find(".latest-news-categories").html(result.category.map(word => word.slice(0, 1).toUpperCase() + word.slice(1)).join(", "))
+            newElement.find(".latest-news-categories").html(result.category.map(word => word.slice(0, 1).toUpperCase() + word.slice(1)).join(", "));
             $("#modal-container").append(newElement);
         }
     }
@@ -331,6 +330,14 @@ async function openWikipediaArticle()
 {
     $("#modal-title").html("Wikipedia Article");
     $("#modal").modal("show");
+    $("#modal-container").append(await $.get("html/wikipedia_article.html"));
+    const geoNamesResult = await $.ajax({ url: "php/geonames/getWikipediaFromCountryName.php", type: "GET", dataType: "json", data: { name: state.currentCountry.name.replace(' ', "%20") } });
+    if (geoNamesResult.data)
+    {
+        $("#wikipedia-article-title").html(geoNamesResult.data.title);
+        $("#wikipedia-article-summary").html(geoNamesResult.data.summary);
+        $("#wikipedia-article-link").attr("href", geoNamesResult.data.wikipediaURL);
+    }
     $("#pre-load-modal").addClass("fade-out");
 }
 

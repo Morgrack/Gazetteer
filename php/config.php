@@ -1,5 +1,7 @@
 <?php
 
+$geoNamesUsername = 'morgrack';
+
 $openCageKey = "3016e7b30f0549b795ad8e4880cb2b38";
 
 $openExchangeRatesKey = "229e5c0fabe6416497ba4485e9189d8a";
