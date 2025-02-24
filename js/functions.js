@@ -124,7 +124,13 @@ function onLocalSelect(newLatLng)
     updateLatLng(newLatLng);
     state.allowLatLngUpdate = false;
     map.panTo([newLatLng.lat, newLatLng.lng], { duration: 0.25 });
-    setTimeout(() => { state.allowLatLngUpdate = true; }, 270);
+    setTimeout(() => 
+        {
+            state.allowLatLngUpdate = true;
+            openLocalInformation(); 
+        }, 
+        270
+    );
 }
 
 //LATLNG SEARCH
@@ -355,7 +361,11 @@ async function openLocalFavourites()
 //OPEN LOCAL INFORMATION
 async function openLocalInformation()
 {
-
+    $("#flag").css("display", "none");
+    $("#modal-title").html("Local Information");
+    $("#modal-container").append(await $.get("html/local_information.html"));
+    $("#modal").modal("show");
+    $("#pre-load-modal").addClass("fade-out");
 }
 
 //CLOSE MODAL
