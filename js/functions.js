@@ -3,6 +3,7 @@ const state =
 {
     allowLatLngUpdate: true,
     currentCountry: { isoa2: "AF", isoa3: "AFG", ison3: "004", name: "Afghanistan" },
+    currentFlag: "assets/unknown_flag.png",
     currentGraphics: { border: null },
     currentLatLng: { lat: 34.52, lng: 69.18 },
     geoJSON: {}
@@ -100,7 +101,11 @@ function updateFlag()
     if (state.currentCountry.isoa3 === "--") { return; }
     $.ajax({ url: "php/restcountries/getFlagFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } }).then((restCountriesResult) => 
     {
-        if (restCountriesResult) { $("#flag").attr("src", restCountriesResult.data.flags.png); }
+        if (restCountriesResult)
+        { 
+            state.currentFlag = restCountriesResult.data.flags.png
+            $("#flag").attr("src", state.currentFlag); 
+        }
     });
 }
 
@@ -372,6 +377,12 @@ async function openLocalInformation()
     $("#modal-container").append(await $.get("html/local_information.html"));
     $("#modal").modal("show");
     getLocalFlag();
+    const [openWeatherResult, geoNamesResult] = await Promise.all([
+        $.ajax({ url: "php/openweather/getForecastFromLatLng.php", type: "GET", dataType: "json", data: { lat: state.currentLatLng.lat, lng: state.currentLatLng.lng } }),
+        $.ajax({ url: "php/geonames/getLandmarksFromLatLng.php", type: "GET", dataType: "json", data: { lat: state.currentLatLng.lat, lng: state.currentLatLng.lng } })
+    ]);
+    console.log(openWeatherResult);
+    console.log(geoNamesResult);
     $("#pre-load-modal").addClass("fade-out");
 }
 
@@ -379,6 +390,7 @@ async function openLocalInformation()
 function closeModal()
 {
     $("#flag").css("display", "inline");
+    $("#flag").attr("src", state.currentFlag);
     $("#modal-title").html("");
     $("#modal-container").empty();
     $("#pre-load-modal").removeClass("fade-out");
