@@ -33,7 +33,7 @@ async function getCurrentCountry()
         if (!openCageResult.data) { return; }
         for (let feature of state.geoJSON.features)
         {
-            if (feature.properties.iso_a2 === openCageResult.data)
+            if (feature.properties.iso_a3 === openCageResult.data)
             { 
                 state.currentCountry.isoa2 = feature.properties.iso_a2;
                 state.currentCountry.isoa3 = feature.properties.iso_a3;
@@ -67,19 +67,20 @@ function populateDropdown()
         $("#dropdown").append(`<option value="${result.isoa2},${result.isoa3},${result.ison3},${result.name}">${result.name}</option>`);
     }
     $("#dropdown").val(`${state.currentCountry.isoa2},${state.currentCountry.isoa3},${state.currentCountry.ison3},${state.currentCountry.name}`);
-    onDropdownSelect();
+    drawCountryBorder(false);
+    updateFlag();
 }
 
 //SELECT DROPDOWN
 function onDropdownSelect()
 {
     [state.currentCountry.isoa2, state.currentCountry.isoa3, state.currentCountry.ison3, state.currentCountry.name] = $("#dropdown").val().split(',');
-    drawCountryBorder();
+    drawCountryBorder(true);
     updateFlag();
 }
 
 //DRAW COUNTRY BORDER
-function drawCountryBorder()
+function drawCountryBorder(fitBounds)
 {
     if (state.currentGraphics.border !== null) { state.currentGraphics.border.remove(); }
     for (let feature of state.geoJSON.features)
@@ -87,7 +88,7 @@ function drawCountryBorder()
         if (feature.properties.iso_a3 === state.currentCountry.isoa3)
         {
             state.currentGraphics.border = L.geoJSON(feature, { color: "black", dashArray: 5, fillOpacity: 0, weight: 3 }).addTo(map);
-            map.fitBounds(state.currentGraphics.border.getBounds());
+            if (fitBounds) { map.fitBounds(state.currentGraphics.border.getBounds()); }
         }
     }
 }
@@ -124,13 +125,7 @@ function onLocalSelect(newLatLng)
     updateLatLng(newLatLng);
     state.allowLatLngUpdate = false;
     map.panTo([newLatLng.lat, newLatLng.lng], { duration: 0.25 });
-    setTimeout(() => 
-        {
-            state.allowLatLngUpdate = true;
-            openLocalInformation(); 
-        }, 
-        270
-    );
+    setTimeout(() => { state.allowLatLngUpdate = true; openLocalInformation(); }, 270);
 }
 
 //LATLNG SEARCH
@@ -191,6 +186,17 @@ function onTimeZoneChange()
     let newTime = offsetMinutes(inputTime, offsetDifference);
     const outputTime = minutesToDigitalTime(newTime); 
     $("#time-conversion-output-text").val(outputTime);
+}
+
+function getLocalFlag()
+{
+    $.ajax({ url: "php/opencage/getCountryFromLatLng.php", type: "GET", dataType: "json", data: { lat: state.currentLatLng.lat, lng: state.currentLatLng.lng } }).then((result) => 
+    {  
+        $.ajax({ url: "php/restcountries/getFlagFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: result.data } }).then((restCountriesResult) => 
+        {
+            if (restCountriesResult) { $("#flag").attr("src", restCountriesResult.data.flags.png); }
+        });
+    })
 }
 
 //OPEN NATIONAL OVERVIEW
@@ -361,10 +367,11 @@ async function openLocalFavourites()
 //OPEN LOCAL INFORMATION
 async function openLocalInformation()
 {
-    $("#flag").css("display", "none");
+    $("#flag").attr("src", "assets/unknown_flag.png");
     $("#modal-title").html("Local Information");
     $("#modal-container").append(await $.get("html/local_information.html"));
     $("#modal").modal("show");
+    getLocalFlag();
     $("#pre-load-modal").addClass("fade-out");
 }
 

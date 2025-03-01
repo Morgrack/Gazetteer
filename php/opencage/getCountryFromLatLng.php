@@ -6,11 +6,11 @@ $executionStartTime = microtime(as_float: true);
 $output = fetch(URL: "https://api.opencagedata.com/geocode/v1/json?q=" . $_REQUEST["lat"] . "+" . $_REQUEST["lng"] . "&key=" . $openCageKey . "&pretty=1");
 if ($output["status"]["code"] === 200)
 {
-    if (count(value: $output["data"]["results"]) > 0)
+    if (count(value: $output["data"]["results"]) > 0)   
     {
         if (array_key_exists(key: "ISO_3166-1_alpha-3", array: $output["data"]["results"][0]["components"])) 
         {
-            $output["data"] = $output["data"]["results"][0]["components"]["ISO_3166-1_alpha-2"];
+            $output["data"] = $output["data"]["results"][0]["components"]["ISO_3166-1_alpha-3"];
         }
         else 
         {
