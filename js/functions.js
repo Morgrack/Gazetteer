@@ -204,6 +204,31 @@ function getLocalFlag()
     })
 }
 
+function findMinTemp(forecasts)
+{
+    let minTemp = forecasts[0].main.temp_min;
+    for (let i = 1; i < forecasts.length; i++)
+    {
+        if (forecasts[i].main.temp_min < minTemp) { minTemp = forecasts[i].main.temp_min; }
+    }
+    return minTemp;
+}
+
+function findMaxTemp(forecasts)
+{
+    let maxTemp = forecasts[0].main.temp_max;
+    for (let i = 1; i < forecasts.length; i++)
+    {
+        if (forecasts[i].main.temp_max > maxTemp) { maxTemp = forecasts[i].main.temp_max; }
+    }
+    return maxTemp;
+}
+
+function findMostCommonWeather(forecasts)
+{
+    return "https://openweathermap.org/img/wn/01d@2x.png"
+}
+
 //OPEN NATIONAL OVERVIEW
 async function openNationalOverview()
 {
@@ -383,9 +408,36 @@ async function openLocalInformation()
     ]);
     console.log(openWeatherResult);
     console.log(geoNamesResult);
+    if (openWeatherResult.data)
+    {
+        let dayCount = -1;
+        let currentDate = "";
+        const collated = [];
+        for (let i = 0; i < openWeatherResult.data.length && dayCount < 7; i++)
+        {
+            const date = openWeatherResult.data[i].dt_txt.slice(0, 10);
+            if (date !== currentDate)
+            {
+                dayCount++
+                currentDate = date;
+                collated.push([]);
+            }
+            collated[dayCount].push(openWeatherResult.data[i]);
+        }
+        console.log(collated);
+        const html = $(await $.get("html/forecast.html"));
+        for (let forecast of collated)
+        {
+            const newElement = $(html[0].outerHTML);
+            newElement.find(".forecast-title").html("Mon");
+            newElement.find(".forecast-image").attr("src", findMostCommonWeather(forecast));
+            newElement.find(".forecast-max-temp").html(roundToDecimalPlace(findMaxTemp(forecast), 0));
+            newElement.find(".forecast-min-temp").html(roundToDecimalPlace(findMinTemp(forecast), 0));
+            $("#forecast-array").append(newElement);
+        }
+    }
     $("#pre-load-modal").addClass("fade-out");
 }
-
 //CLOSE MODAL
 function closeModal()
 {
