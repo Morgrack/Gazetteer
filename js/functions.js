@@ -431,8 +431,8 @@ async function openLocalInformation()
             const newElement = $(html[0].outerHTML);
             newElement.find(".forecast-title").html("Mon");
             newElement.find(".forecast-image").attr("src", findMostCommonWeather(forecast));
-            newElement.find(".forecast-max-temp").html(roundToDecimalPlace(findMaxTemp(forecast), 0));
-            newElement.find(".forecast-min-temp").html(roundToDecimalPlace(findMinTemp(forecast), 0));
+            newElement.find(".forecast-max-temp").html(roundToDecimalPlace(findMaxTemp(forecast), 0) + "°");
+            newElement.find(".forecast-min-temp").html(roundToDecimalPlace(findMinTemp(forecast), 0) + "°");
             $("#forecast-array").append(newElement);
         }
     }
