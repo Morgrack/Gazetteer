@@ -391,7 +391,7 @@ async function openWikipediaArticle()
     {
         $("#wikipedia-article-title").html(geoNamesResult.data.title);
         $("#wikipedia-article-summary").html(geoNamesResult.data.summary);
-        $("#wikipedia-article-link").attr("href", geoNamesResult.data.wikipediaURL);
+        $("#wikipedia-article-link").attr("href", "https://" + geoNamesResult.data.wikipediaURL);
     }
     $("#pre-load-modal").addClass("fade-out");
 }
@@ -473,7 +473,7 @@ function createEasyButtons()
 $(document).ready(async () => 
 {
     await getGeoJSON();
-    await getCurrentCountry();
+    //await getCurrentCountry();
     populateDropdown(); 
     $("#dropdown").change(onDropdownSelect);
     updateLatLng(state.currentLatLng);
