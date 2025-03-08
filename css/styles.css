@@ -82,6 +82,17 @@ body
     color: grey
 }
 
+.forecast-button:hover, .forecast-button:active
+{
+    background-color: lightgray;
+}
+
+.forecast-selected
+{
+    background-color: lightgray;
+    pointer-events: none;
+}
+
 .pre-load 
 {
     position: absolute;

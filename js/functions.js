@@ -4,7 +4,7 @@ const state =
     allowLatLngUpdate: true,
     currentCountry: { isoa2: "AF", isoa3: "AFG", ison3: "004", name: "Afghanistan" },
     currentFlag: "assets/unknown.png",
-    currentGraphics: { border: null },
+    currentGraphics: { border: null, chart: null },
     currentLatLng: { lat: 34.52, lng: 69.18 }
 }
 
@@ -221,7 +221,54 @@ function findMaxTemp(forecasts)
 //FIND MOST COMMON WEATHER
 function findMostCommonWeather(forecasts)
 {
-    return "https://openweathermap.org/img/wn/01d@2x.png"
+    const weatherCounts = {}
+    for (let forecast of forecasts)
+    {
+        if (!weatherCounts[forecast.weather[0].icon]) { weatherCounts[forecast.weather[0].icon] = 0; }
+        weatherCounts[forecast.weather[0].icon]++;
+    }
+    let mostCommon = null;
+    let count = 0;
+    for (let key of Object.keys(weatherCounts))
+    {
+        if (weatherCounts[key] > count) 
+        { 
+            mostCommon = key; 
+            count = weatherCounts[key];
+        }
+    }
+    mostCommon = mostCommon.slice(0, 2);
+    return `https://openweathermap.org/img/wn/${mostCommon}d@2x.png`;
+}
+
+//DRAW FORECAST CHART
+function drawForecastChart(event, forecasts)
+{
+    if (state.currentGraphics.chart !== null) { state.currentGraphics.chart.destroy(); }
+    $("#forecast-array").children().removeClass("forecast-selected"); //TODO: work out CSS to for button press
+    event.currentTarget.classList.add("forecast-selected");
+    state.currentGraphics.chart = new Chart(
+        document.getElementById("forecast-chart"), 
+        {
+            type: 'bar',
+            data: 
+            {
+                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                datasets: [{
+                    label: '# of Votes',
+                    data: [12, 19, 3, 5, 2, 3],
+                    borderWidth: 1
+                }]
+            },
+            options: 
+            {
+                scales: 
+                {
+                    y: { beginAtZero: true }
+                }
+            }
+        }
+    );
 }
 
 //GET LOCAL FLAG
@@ -409,7 +456,7 @@ async function openLocalFavourites() //TODO: populate with cookies
 //OPEN LOCAL INFORMATION
 async function openLocalInformation()
 {
-    $("#flag").attr("src", "assets/unknown_flag.png");
+    $("#flag").attr("src", "assets/unknown.png");
     getLocalFlag();
     $("#modal-title").html("Local Information");
     $("#modal-container").append(await $.get("html/single/local_information.html"));
@@ -435,15 +482,19 @@ async function openLocalInformation()
             collatedInfo[dayCount].push(openWeatherResult.data[i]);
         }
         const html = $(await $.get("html/multiple/forecast.html"));
+        const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         for (let forecast of collatedInfo)
         {
             const newElement = $(html[0].outerHTML);
-            newElement.find(".forecast-title").html("Mon");
+            const date = new Date(forecast[0].dt_txt.slice(0, 10));
+            newElement.find(".forecast-title").html(dayNames[date.getDay()]);
             newElement.find(".forecast-image").attr("src", findMostCommonWeather(forecast));
             newElement.find(".forecast-max-temp").html(roundToDecimalPlace(findMaxTemp(forecast), 0) + "°");
             newElement.find(".forecast-min-temp").html(roundToDecimalPlace(findMinTemp(forecast), 0) + "°");
+            newElement.click((event) => { drawForecastChart(event, forecast); })
             $("#forecast-array").append(newElement);
         }
+        
     }
     $("#pre-load-modal").addClass("fade-out");
 }
@@ -473,7 +524,7 @@ function createEasyButtons()
 $(document).ready(async () => 
 {
     await getGeoJSON();
-    //await getCurrentCountry();
+    await getCurrentCountry();
     populateDropdown(); 
     $("#dropdown").change(onDropdownSelect);
     updateLatLng(state.currentLatLng);
