@@ -1,19 +1,4 @@
-1. Time zone ✓
-2. Latest news ✓
-3. Wikipedia ✓
-4. Local information ✓
-5. Forecast
-6. Markercluster
-7. DBNomics data
-8. Favicon
-9. Double-check all PHP routines and bad connection handling
-10. Plan out finishing Company Directory app before March to try and get ahead
+Saturday: Forecast, Landmarks, Favourites
+Sunday: Markercluster, DBNomics, Favicon, Error Handling
 
-
-
-MAR: Company Directory (6 days), Kelly's Kollars (2 days)
-APR: Bounding Box Tool (2 days), Platoomer Bot (11 days)
-MAY: E-Commerce App (8 days)
-JUN: Portfolio Website (unknown)
-
-I thought I would be able to get this done by April, but June seems more likely unless I take more holiday
+RESIZE IMAGES TO BRING DOWN FILESIZE

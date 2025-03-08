@@ -11,11 +11,6 @@ body
     z-index: 0;
 }
 
-#dropdown-container
-{
-    padding: 11px 0;
-}
-
 #dropdown 
 {
     margin: 0 auto;
