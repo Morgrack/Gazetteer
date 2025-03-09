@@ -241,34 +241,73 @@ function findMostCommonWeather(forecasts)
     return `https://openweathermap.org/img/wn/${mostCommon}d@2x.png`;
 }
 
+//HIGHLIGHT BUTTON
+function highlightButton(event) //TODO: work out CSS for button press
+{
+    $("#forecast-array").children().removeClass("forecast-selected"); 
+    event.currentTarget.classList.add("forecast-selected");
+}
+
 //DRAW FORECAST CHART
-function drawForecastChart(event, forecasts)
+function drawForecastChart(forecasts) //TODO: add most statistics, including snow
 {
     if (state.currentGraphics.chart !== null) { state.currentGraphics.chart.destroy(); }
-    $("#forecast-array").children().removeClass("forecast-selected"); //TODO: work out CSS to for button press
-    event.currentTarget.classList.add("forecast-selected");
+    const startTime = forecasts[0].dt_txt.slice(-8, -3);
+    const endTime = forecasts[forecasts.length - 1].dt_txt.slice(-8, -3);
+    let times = ["00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00"];
+    times = times.slice(times.indexOf(startTime), times.indexOf(endTime) + 1);
+    const temperatures = []; const windSpeed = []; const precipitation = [];
+    forecasts.forEach((forecast) =>
+    {
+        temperatures.push(forecast.main.temp);
+        windSpeed.push(forecast.wind.speed);
+        precipitation.push(forecast.rain ? forecast.rain["3h"] : 0);
+    })
     state.currentGraphics.chart = new Chart(
-        document.getElementById("forecast-chart"), 
+        document.getElementById("forecast-chart"),
         {
-            type: 'bar',
+            type: "line",
             data: 
             {
-                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-                datasets: [{
-                    label: '# of Votes',
-                    data: [12, 19, 3, 5, 2, 3],
-                    borderWidth: 1
-                }]
+                labels: times,
+                datasets:
+                [
+                    {
+                        label: "Temperature (°C)",
+                        data: temperatures,
+                        borderColor: "rgb(236,110,76)",
+                        backgroundColor: "rgb(236,110,76)",
+                        tension: 0.25
+                    },
+                    {
+                        label: "Wind Speed (kph)",
+                        data: windSpeed,
+                        borderColor: "rgb(211, 211, 211)",
+                        backgroundColor: "rgb(211, 211, 211)",
+                        tension: 0.25
+                    },
+                    {
+                        label: "Precipitation (mm)",
+                        data: precipitation,
+                        borderColor: "rgb(173, 216, 230)",
+                        backgroundColor: "rgb(173, 216, 230)",
+                        tension: 0.25
+                    }
+                ]
             },
             options: 
             {
-                scales: 
+                responsive: true,
+                plugins: 
                 {
-                    y: { beginAtZero: true }
+                    legend: 
+                    {
+                        position: 'top',
+                    }
                 }
             }
         }
-    );
+    )
 }
 
 //GET LOCAL FLAG
@@ -491,10 +530,27 @@ async function openLocalInformation()
             newElement.find(".forecast-image").attr("src", findMostCommonWeather(forecast));
             newElement.find(".forecast-max-temp").html(roundToDecimalPlace(findMaxTemp(forecast), 0) + "°");
             newElement.find(".forecast-min-temp").html(roundToDecimalPlace(findMinTemp(forecast), 0) + "°");
-            newElement.click((event) => { drawForecastChart(event, forecast); })
+            newElement.click((event) => 
+            {
+                highlightButton(event); 
+                drawForecastChart(forecast); 
+            })
             $("#forecast-array").append(newElement);
         }
-        
+        $("#forecast-array").children()[0].classList.add("forecast-selected"); 
+        drawForecastChart(collatedInfo[0]);
+    }
+    if (geoNamesResult)
+    {
+        const html = $(await $.get("html/multiple/landmark.html"));
+        for (let landmark of geoNamesResult.data.geonames) 
+        {
+            const newElement = $(html[0].outerHTML);
+            newElement.find(".landmark-title").html(landmark.title);
+            newElement.find(".landmark-summary").html(landmark.summary);
+            newElement.find(".landmark-link").attr("href", "https://" + landmark.wikipediaURL);
+            $("#landmarks").append(newElement);
+        }
     }
     $("#pre-load-modal").addClass("fade-out");
 }
@@ -524,7 +580,7 @@ function createEasyButtons()
 $(document).ready(async () => 
 {
     await getGeoJSON();
-    await getCurrentCountry();
+    //await getCurrentCountry();
     populateDropdown(); 
     $("#dropdown").change(onDropdownSelect);
     updateLatLng(state.currentLatLng);

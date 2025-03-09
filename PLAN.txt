@@ -1,4 +1,4 @@
 Saturday: Forecast, Landmarks, Favourites
-Sunday: Markercluster, DBNomics, Favicon, Error Handling
+Sunday: Markercluster, DBNomics, Favicon, Error Handling, CSS Reduction
 
 RESIZE IMAGES TO BRING DOWN FILESIZE

@@ -55,9 +55,14 @@ body
     height: 125px;
 }
 
-#wikipedia-article-link
+#wikipedia-article-link, .landmark-link
 {
     text-decoration: none;
+}
+
+#forecast-chart
+{
+    max-height: 165px;
 }
 
 .font-size-20   
