@@ -457,7 +457,7 @@ async function openLatestNews()
         {
             const newElement = $(html[0].outerHTML);
             newElement.find(".latest-news-image").attr("src", result.image_url);
-            newElement.find(".latest-news-title").attr("href", result.source_url);
+            newElement.find(".latest-news-title").attr("href", result.source_url); //TODO: only change if exists
             newElement.find(".latest-news-title").html(result.title);
             newElement.find(".latest-news-categories").html(result.category.map(word => word.slice(0, 1).toUpperCase() + word.slice(1)).join(", "));
             $("#modal-container").append(newElement);
@@ -540,7 +540,7 @@ async function openLocalInformation()
         $("#forecast-array").children()[0].classList.add("forecast-selected"); 
         drawForecastChart(collatedInfo[0]);
     }
-    if (geoNamesResult)
+    if (geoNamesResult.data)
     {
         const html = $(await $.get("html/multiple/landmark.html"));
         for (let landmark of geoNamesResult.data.geonames) 
