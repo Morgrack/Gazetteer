@@ -8,14 +8,16 @@ if ($output["status"]["code"] === 200)
 {
     if (count(value: $output["data"]["results"]) > 0)   
     {
+        $newData = [];
+        if (array_key_exists(key: "formatted", array: $output["data"]["results"][0])) 
+        {
+            $newData["address"] = $output["data"]["results"][0]["formatted"];
+        }
         if (array_key_exists(key: "ISO_3166-1_alpha-3", array: $output["data"]["results"][0]["components"])) 
         {
-            $output["data"] = $output["data"]["results"][0]["components"]["ISO_3166-1_alpha-3"];
+            $newData["isoa3"] = $output["data"]["results"][0]["components"]["ISO_3166-1_alpha-3"];
         }
-        else 
-        {
-            $output["data"] = null;
-        }
+        $output["data"] = count(value: $newData) === 0 ? null : $newData;
     }
     else
     {

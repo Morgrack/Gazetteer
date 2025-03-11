@@ -310,12 +310,28 @@ function drawForecastChart(forecasts) //TODO: add most statistics, including sno
     )
 }
 
-//GET LOCAL FLAG
-function getLocalFlag()
+//SAVE TO FAVOURITES
+function saveToFavourites()
 {
-    $.ajax({ url: "php/opencage/getISOA3FromLatLng.php", type: "GET", dataType: "json", data: { lat: state.currentLatLng.lat, lng: state.currentLatLng.lng } }).then((result) => 
+    const input = $("#favourite-input").val();
+    let cookies = document.cookie.split(";")
+    cookies = cookies.map((pair) => pair.split("="));
+    
+}
+
+//GET LOCAL DETAILS
+function getLocalDetails()
+{
+    $.ajax({ url: "php/opencage/getAddressAndISOA3FromLatLng.php", type: "GET", dataType: "json", data: { lat: state.currentLatLng.lat, lng: state.currentLatLng.lng } }).then((openCageResult) => 
     {  
-        $.ajax({ url: "php/restcountries/getFlagFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: result.data } }).then((restCountriesResult) => 
+        if (!openCageResult.data) { return; }
+        $.get("html/single/local_information_footer.html").then((html) =>
+        {
+            $("#modal-extra-info").append(html);
+            $("#address").append(openCageResult.data.address)
+            $("#favourite-button").click()
+        })
+        $.ajax({ url: "php/restcountries/getFlagFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: openCageResult.data.isoa3 } }).then((restCountriesResult) => 
         {
             if (!restCountriesResult.data) { return; }
             if (restCountriesResult.data.flags)
@@ -496,9 +512,9 @@ async function openLocalFavourites() //TODO: populate with cookies
 async function openLocalInformation()
 {
     $("#flag").attr("src", "assets/unknown.png");
-    getLocalFlag();
+    getLocalDetails();
     $("#modal-title").html("Local Information");
-    $("#modal-container").append(await $.get("html/single/local_information.html"));
+    $("#modal-container").append(await $.get("html/single/local_information_body.html"));
     $("#modal").modal("show");
     const [openWeatherResult, geoNamesResult] = await Promise.all([
         $.ajax({ url: "php/openweather/getForecastFromLatLng.php", type: "GET", dataType: "json", data: { lat: state.currentLatLng.lat, lng: state.currentLatLng.lng } }),
@@ -562,6 +578,7 @@ function closeModal()
     $("#flag").attr("src", state.currentFlag);
     $("#modal-title").html("");
     $("#modal-container").empty();
+    $("#modal-extra-info").empty();
     $("#pre-load-modal").removeClass("fade-out");
 }
 
