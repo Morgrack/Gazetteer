@@ -2,20 +2,19 @@
 const state =
 {
     allowLatLngUpdate: true,
-    currentCountry: { isoa2: "AF", isoa3: "AFG", ison3: "004", name: "Afghanistan" },
-    currentFlag: "assets/unknown.png",
-    currentGraphics: { border: null, chart: null },
-    currentLatLng: { lat: 34.52, lng: 69.18 }
+    country: { isoa2: "AF", isoa3: "AFG", ison3: "004", name: "Afghanistan" },
+    flag: "assets/unknown.png",
+    graphics: { border: null, forecast: null },
+    latLng: { lat: 34.52, lng: 69.18 }
 }
 
 //MAP
 const stadiaOSMBright = L.tileLayer("https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}", { minZoom: 0, maxZoom: 20, ext: "png"/*, attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'*/ });
 const stadiaAlidadeSatellite = L.tileLayer("https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.{ext}", { minZoom: 0, maxZoom: 20, ext: "jpg"/*, attribution: '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'*/ });
 const layers = { "Street": stadiaOSMBright, "Satellite": stadiaAlidadeSatellite }
-const map = L.map("map").setView([state.currentLatLng.lat, state.currentLatLng.lng], 5);
+const map = L.map("map").setView([state.latLng.lat, state.latLng.lng], 5);
 const layerControl = L.control.layers(layers).addTo(map);
 stadiaOSMBright.addTo(map);
-
 
 //GET GEOJSON
 let geoJSON = {}
@@ -36,13 +35,13 @@ async function getCurrentCountry()
         for (let feature of geoJSON.features)
         {
             if (feature.properties.iso_a3 !== openCageResult.data) { continue; }
-            state.currentCountry.isoa2 = feature.properties.iso_a2;
-            state.currentCountry.isoa3 = feature.properties.iso_a3;
-            state.currentCountry.ison3 = feature.properties.iso_n3;
-            state.currentCountry.name = feature.properties.name;
-            state.currentLatLng.lat = geolocation.coords.latitude;
-            state.currentLatLng.lng = geolocation.coords.longitude;
-            map.setView([state.currentLatLng.lat, state.currentLatLng.lng]);
+            state.country.isoa2 = feature.properties.iso_a2;
+            state.country.isoa3 = feature.properties.iso_a3;
+            state.country.ison3 = feature.properties.iso_n3;
+            state.country.name = feature.properties.name;
+            state.latLng.lat = geolocation.coords.latitude;
+            state.latLng.lng = geolocation.coords.longitude;
+            map.setView([state.latLng.lat, state.latLng.lng]);
         }
     }
     catch(error)
@@ -66,7 +65,7 @@ function populateDropdown()
     {
         $("#dropdown").append(`<option value="${result.isoa2},${result.isoa3},${result.ison3},${result.name}">${result.name}</option>`);
     }
-    $("#dropdown").val(`${state.currentCountry.isoa2},${state.currentCountry.isoa3},${state.currentCountry.ison3},${state.currentCountry.name}`);
+    $("#dropdown").val(`${state.country.isoa2},${state.country.isoa3},${state.country.ison3},${state.country.name}`);
     drawCountryBorder(false);
     updateFlag();
 }
@@ -81,13 +80,13 @@ function roundToDecimalPlace(value, degrees)
 //DRAW COUNTRY BORDER
 function drawCountryBorder(fitBounds)
 {
-    if (state.currentGraphics.border !== null) { state.currentGraphics.border.remove(); }
-    if (state.currentCountry.isoa3 === "--") { return; }
+    if (state.graphics.border !== null) { state.graphics.border.remove(); }
+    if (state.country.isoa3 === "--") { return; }
     for (let feature of geoJSON.features)
     {
-        if (feature.properties.iso_a3 !== state.currentCountry.isoa3) { continue; }
-        state.currentGraphics.border = L.geoJSON(feature, { color: "black", dashArray: 5, fillOpacity: 0, weight: 3 }).addTo(map);
-        if (fitBounds) { map.fitBounds(state.currentGraphics.border.getBounds()); }
+        if (feature.properties.iso_a3 !== state.country.isoa3) { continue; }
+        state.graphics.border = L.geoJSON(feature, { color: "black", dashArray: 5, fillOpacity: 0, weight: 3 }).addTo(map);
+        if (fitBounds) { map.fitBounds(state.graphics.border.getBounds()); }
     }
 }
 
@@ -95,21 +94,19 @@ function drawCountryBorder(fitBounds)
 function updateFlag()
 {
     $("#flag").attr("src", "assets/unknown.png");
-    if (state.currentCountry.isoa3 === "--") { return; }
-    $.ajax({ url: "php/restcountries/getFlagFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } }).then((restCountriesResult) => 
+    if (state.country.isoa3 === "--") { return; }
+    $.ajax({ url: "php/restcountries/getFlagFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.country.isoa3 } }).then((restCountriesResult) => 
     {
-        if (restCountriesResult.data)
-        { 
-            state.currentFlag = restCountriesResult.data.flags.png
-            $("#flag").attr("src", state.currentFlag); 
-        }
+        if (!restCountriesResult.data) { return; } 
+        state.flag = restCountriesResult.data.flags.png;
+        $("#flag").attr("src", state.flag);
     });
 }
 
 //ON DROPDOWN SELECT
 function onDropdownSelect()
 {
-    [state.currentCountry.isoa2, state.currentCountry.isoa3, state.currentCountry.ison3, state.currentCountry.name] = $("#dropdown").val().split(',');
+    [state.country.isoa2, state.country.isoa3, state.country.ison3, state.country.name] = $("#dropdown").val().split(',');
     drawCountryBorder(true);
     updateFlag();
 }
@@ -117,9 +114,9 @@ function onDropdownSelect()
 //UPDATE LATLNG
 function updateLatLng(newLatLng)
 {
-    state.currentLatLng = newLatLng;
-    $("#lat").val(roundToDecimalPlace(state.currentLatLng.lat, 4));
-    $("#lng").val(roundToDecimalPlace(state.currentLatLng.lng, 4));
+    state.latLng = newLatLng;
+    $("#lat").val(roundToDecimalPlace(state.latLng.lat, 4));
+    $("#lng").val(roundToDecimalPlace(state.latLng.lng, 4));
 }
 
 //ON LOCAL SELECT
@@ -187,13 +184,13 @@ function minutesToDigitalTime(totalMinutes)
 //ON TIME ZONE CHANGE
 function onTimeZoneChange()
 {
-    const inputUTCOffset = digitalTimeToMinutes($("#time-conversion-input-dropdown").val().slice(-6));
-    const outputUTCOffset = digitalTimeToMinutes($("#time-conversion-output-dropdown").val().slice(-6));
-    const inputTime = digitalTimeToMinutes($("#time-conversion-input-text").val().slice(-6));
+    const inputUTCOffset = digitalTimeToMinutes($("#time-zone-input-dropdown").val().slice(-6));
+    const outputUTCOffset = digitalTimeToMinutes($("#time-zone-output-dropdown").val().slice(-6));
+    const inputTime = digitalTimeToMinutes($("#time-zone-input-text").val().slice(-6));
     const offsetDifference = outputUTCOffset - inputUTCOffset;
     const newTime = offsetMinutes(inputTime, offsetDifference);
     const outputTime = minutesToDigitalTime(newTime); 
-    $("#time-conversion-output-text").val(outputTime);
+    $("#time-zone-output-text").val(outputTime);
 }
 
 //FIND MIN TEMP
@@ -249,9 +246,9 @@ function highlightButton(event) //TODO: work out CSS for button press
 }
 
 //DRAW FORECAST CHART
-function drawForecastChart(forecasts) //TODO: add most statistics, including snow
+function drawForecastGraph(forecasts) //TODO: add most statistics, including snow
 {
-    if (state.currentGraphics.chart !== null) { state.currentGraphics.chart.destroy(); }
+    if (state.graphics.forecast !== null) { state.graphics.forecast.destroy(); }
     const startTime = forecasts[0].dt_txt.slice(-8, -3);
     const endTime = forecasts[forecasts.length - 1].dt_txt.slice(-8, -3);
     let times = ["00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00"];
@@ -263,8 +260,8 @@ function drawForecastChart(forecasts) //TODO: add most statistics, including sno
         windSpeed.push(forecast.wind.speed);
         precipitation.push(forecast.rain ? forecast.rain["3h"] : 0);
     })
-    state.currentGraphics.chart = new Chart(
-        document.getElementById("forecast-chart"),
+    state.graphics.forecast = new Chart(
+        document.getElementById("forecast-graph"),
         {
             type: "line",
             data: 
@@ -316,33 +313,38 @@ function saveToFavourites()
     const input = $("#favourite-input").val();
     let cookies = document.cookie.split(";")
     cookies = cookies.map((pair) => pair.split("="));
-    
 }
 
 //GET LOCAL DETAILS
 function getLocalDetails()
 {
-    $.ajax({ url: "php/opencage/getAddressAndISOA3FromLatLng.php", type: "GET", dataType: "json", data: { lat: state.currentLatLng.lat, lng: state.currentLatLng.lng } }).then((openCageResult) => 
+    $.ajax({ url: "php/opencage/getAddressAndISOA3FromLatLng.php", type: "GET", dataType: "json", data: { lat: state.latLng.lat, lng: state.latLng.lng } }).then((openCageResult) => 
     {  
         if (!openCageResult.data) { return; }
-        $.get("html/single/local_information_footer.html").then((html) =>
+        if (openCageResult.data.address)
         {
-            $("#modal-extra-info").append(html);
-            $("#address").append(openCageResult.data.address)
-            $("#favourite-button").click()
-        })
-        $.ajax({ url: "php/restcountries/getFlagFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: openCageResult.data.isoa3 } }).then((restCountriesResult) => 
+            $("#address").html(openCageResult.data.address)
+            $("#favourite-button").click(saveToFavourites);
+        }
+        if (openCageResult.data.isoa3)
         {
-            if (!restCountriesResult.data) { return; }
-            if (restCountriesResult.data.flags)
+            $.ajax({ url: "php/restcountries/getFlagFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: openCageResult.data.isoa3 } }).then((restCountriesResult) => 
             {
-                $("#flag").attr("src", restCountriesResult.data.flags.png);
-            }
-            else
-            {
-                $("#flag").attr("src", "assets/pirate.png");
-            }
-        });
+                if (!restCountriesResult.data) { return; }
+                if (restCountriesResult.data.flags)
+                {
+                    $("#flag").attr("src", restCountriesResult.data.flags.png);
+                }
+                else
+                {
+                    $("#flag").attr("src", "assets/pirate.png");
+                }
+            });
+        }
+        else
+        {
+            $("#flag").attr("src", "assets/pirate.png");
+        }
     })
 }
 
@@ -350,12 +352,12 @@ function getLocalDetails()
 async function openNationalOverview() //TODO: add UN data for GDP
 {
     $("#modal-title").html("National Overview");
-    $("#modal-container").append(await $.get("html/single/national_overview.html"));
+    $("#modal-body-container").append(await $.get("html/body/national_overview.html"));
     $("#modal").modal("show");
-    const restCountriesResult = await $.ajax({ url: "php/restcountries/getOverviewFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } });
+    const restCountriesResult = await $.ajax({ url: "php/restcountries/getOverviewFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.country.isoa3 } });
     if (restCountriesResult.data)
     {
-        $("#iso").html(`${state.currentCountry.isoa2} / ${state.currentCountry.isoa3} / ${state.currentCountry.ison3}`);
+        $("#iso").html(`${state.country.isoa2} / ${state.country.isoa3} / ${state.country.ison3}`);
         $("#common-name").html(restCountriesResult.data.name.common);
         $("#official-name").html(restCountriesResult.data.name.official);
         $("#diplomatic-status").html(`${restCountriesResult.data.independent ? "Sovereign" : "Contested"}, ${restCountriesResult.data.unMember ? "UN Member" : "Non-UN Member"}`);
@@ -377,10 +379,10 @@ async function openNationalOverview() //TODO: add UN data for GDP
 async function openExchangeRate()
 {
     $("#modal-title").html("Exchange Rate");
-    $("#modal-container").append(await $.get("html/single/exchange_rate.html"));
+    $("#modal-body-container").append(await $.get("html/body/exchange_rate.html"));
     $("#modal").modal("show");
     const [restCountriesCurrentCurrency, restCountriesAllCurrencies, openExchangeRatesResult] = await Promise.all([
-        $.ajax({ url: "php/restcountries/getCurrencyFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } }),
+        $.ajax({ url: "php/restcountries/getCurrencyFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.country.isoa3 } }),
         $.ajax({ url: "php/restCountries/getCurrencies.php", type: "GET", dataType: "json" }),
         $.ajax({ url: "php/openexchangerates/getExchangeRates.php", type: "GET", dataType: "json" })
     ]);
@@ -423,10 +425,10 @@ async function openExchangeRate()
 async function openTimeZoneConversion() //TODO: add tick box to keep sync with current time
 {
     $("#modal-title").html("Time Zone Conversion");
-    $("#modal-container").append(await $.get("html/single/time_zone_conversion.html"));
+    $("#modal-body-container").append(await $.get("html/body/time_zone_conversion.html"));
     $("#modal").modal("show");
     const [restCountriesCurrentTimeZone, restCountriesAllTimeZones] = await Promise.all([
-        $.ajax({ url: "php/restcountries/getTimeZoneFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.currentCountry.isoa3 } }),
+        $.ajax({ url: "php/restcountries/getTimeZoneFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.country.isoa3 } }),
         $.ajax({ url: "php/restCountries/getTimeZones.php", type: "GET", dataType: "json" })    
     ]);
     if (restCountriesCurrentTimeZone.data && restCountriesAllTimeZones.data)
@@ -442,19 +444,19 @@ async function openTimeZoneConversion() //TODO: add tick box to keep sync with c
         const sortedTimeZones = Object.values(uniqueTimeZones).sort((a, b) => { return a > b ? 1 : -1 });
         for (let result of sortedTimeZones)
         {
-            $("#time-conversion-input-dropdown").append(`<option value="${result}">${result}</option>`);
-            $("#time-conversion-output-dropdown").append(`<option value="${result}">${result}</option>`);
+            $("#time-zone-input-dropdown").append(`<option value="${result}">${result}</option>`);
+            $("#time-zone-output-dropdown").append(`<option value="${result}">${result}</option>`);
         }
         const current = restCountriesCurrentTimeZone.data.timezones[0];
-        $("#time-conversion-input-dropdown").val(current);
-        $("#time-conversion-output-dropdown").val(current);
+        $("#time-zone-input-dropdown").val(current);
+        $("#time-zone-output-dropdown").val(current);
         const offset = digitalTimeToMinutes(current.slice(-6));
         const newTime = offsetMinutes(Math.floor(Date.now() / 60000), offset);
         const newTimeFormatted = minutesToDigitalTime(newTime);
-        $("#time-conversion-input-text").val(newTimeFormatted);
-        $("#time-conversion-input-text").change(onTimeZoneChange);
-        $("#time-conversion-input-dropdown").change(onTimeZoneChange);
-        $("#time-conversion-output-dropdown").change(onTimeZoneChange);
+        $("#time-zone-input-text").val(newTimeFormatted);
+        $("#time-zone-input-text").change(onTimeZoneChange);
+        $("#time-zone-input-dropdown").change(onTimeZoneChange);
+        $("#time-zone-output-dropdown").change(onTimeZoneChange);
         onTimeZoneChange();
     }
     $("#pre-load-modal").addClass("fade-out");
@@ -465,18 +467,18 @@ async function openLatestNews()
 {
     $("#modal-title").html("Latest News");
     $("#modal").modal("show");
-    const newsDataResult = await $.ajax({ url: "php/newsdata/getNewsFromISOA2.php", type: "GET", dataType: "json", data: { isoa2: state.currentCountry.isoa2 } });
+    const newsDataResult = await $.ajax({ url: "php/newsdata/getNewsFromISOA2.php", type: "GET", dataType: "json", data: { isoa2: state.country.isoa2 } });
     if (newsDataResult.data)
     {
-        const html = $(await $.get("html/multiple/news.html"));
+        const html = $(await $.get("html/reusable/news.html"));
         for (let result of newsDataResult.data)
         {
             const newElement = $(html[0].outerHTML);
-            newElement.find(".latest-news-image").attr("src", result.image_url);
-            newElement.find(".latest-news-title").attr("href", result.source_url); //TODO: only change if exists
-            newElement.find(".latest-news-title").html(result.title);
-            newElement.find(".latest-news-categories").html(result.category.map(word => word.slice(0, 1).toUpperCase() + word.slice(1)).join(", "));
-            $("#modal-container").append(newElement);
+            newElement.find(".news-image").attr("src", result.image_url);
+            newElement.find(".news-title").attr("href", result.source_url); //TODO: only change if exists
+            newElement.find(".news-title").html(result.title);
+            newElement.find(".news-categories").html(result.category.map(word => word.slice(0, 1).toUpperCase() + word.slice(1)).join(", "));
+            $("#modal-body-container").append(newElement);
         }
     }
     $("#pre-load-modal").addClass("fade-out");
@@ -487,8 +489,8 @@ async function openWikipediaArticle()
 {
     $("#modal-title").html("Wikipedia Article");
     $("#modal").modal("show");
-    $("#modal-container").append(await $.get("html/single/wikipedia_article.html"));
-    const geoNamesResult = await $.ajax({ url: "php/geonames/getWikipediaFromCountryName.php", type: "GET", dataType: "json", data: { name: state.currentCountry.name.replace(' ', "%20") } });
+    $("#modal-body-container").append(await $.get("html/body/wikipedia_article.html"));
+    const geoNamesResult = await $.ajax({ url: "php/geonames/getWikipediaFromCountryName.php", type: "GET", dataType: "json", data: { name: state.country.name.replace(' ', "%20") } });
     if (geoNamesResult.data)
     {
         $("#wikipedia-article-title").html(geoNamesResult.data.title);
@@ -503,7 +505,7 @@ async function openLocalFavourites() //TODO: populate with cookies
 {
     $("#flag").css("display", "none");
     $("#modal-title").html("Local Favourites");
-    $("#modal-container").append(await $.get("html/multiple/favourite.html"));
+    $("#modal-body-container").append(await $.get("html/reusable/favourite.html"));
     $("#modal").modal("show");
     $("#pre-load-modal").addClass("fade-out");
 }
@@ -514,11 +516,12 @@ async function openLocalInformation()
     $("#flag").attr("src", "assets/unknown.png");
     getLocalDetails();
     $("#modal-title").html("Local Information");
-    $("#modal-container").append(await $.get("html/single/local_information_body.html"));
+    $("#modal-body-container").append(await $.get("html/body/local_information.html"));
+    $("#modal-footer-container").append(await $.get("html/footer/local_information.html"));
     $("#modal").modal("show");
     const [openWeatherResult, geoNamesResult] = await Promise.all([
-        $.ajax({ url: "php/openweather/getForecastFromLatLng.php", type: "GET", dataType: "json", data: { lat: state.currentLatLng.lat, lng: state.currentLatLng.lng } }),
-        $.ajax({ url: "php/geonames/getLandmarksFromLatLng.php", type: "GET", dataType: "json", data: { lat: state.currentLatLng.lat, lng: state.currentLatLng.lng } })
+        $.ajax({ url: "php/openweather/getForecastFromLatLng.php", type: "GET", dataType: "json", data: { lat: state.latLng.lat, lng: state.latLng.lng } }),
+        $.ajax({ url: "php/geonames/getLandmarksFromLatLng.php", type: "GET", dataType: "json", data: { lat: state.latLng.lat, lng: state.latLng.lng } })
     ]);
     if (openWeatherResult.data)
     {
@@ -536,7 +539,7 @@ async function openLocalInformation()
             }
             collatedInfo[dayCount].push(openWeatherResult.data[i]);
         }
-        const html = $(await $.get("html/multiple/forecast.html"));
+        const html = $(await $.get("html/reusable/forecast.html"));
         const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         for (let forecast of collatedInfo)
         {
@@ -549,16 +552,16 @@ async function openLocalInformation()
             newElement.click((event) => 
             {
                 highlightButton(event); 
-                drawForecastChart(forecast); 
+                drawForecastGraph(forecast); 
             })
             $("#forecast-array").append(newElement);
         }
         $("#forecast-array").children()[0].classList.add("forecast-selected"); 
-        drawForecastChart(collatedInfo[0]);
+        drawForecastGraph(collatedInfo[0]);
     }
     if (geoNamesResult.data)
     {
-        const html = $(await $.get("html/multiple/landmark.html"));
+        const html = $(await $.get("html/reusable/landmark.html"));
         for (let landmark of geoNamesResult.data.geonames) 
         {
             const newElement = $(html[0].outerHTML);
@@ -575,10 +578,10 @@ async function openLocalInformation()
 function closeModal()
 {
     $("#flag").css("display", "inline");
-    $("#flag").attr("src", state.currentFlag);
+    $("#flag").attr("src", state.flag);
     $("#modal-title").html("");
-    $("#modal-container").empty();
-    $("#modal-extra-info").empty();
+    $("#modal-body-container").empty();
+    $("#modal-footer-container").empty();
     $("#pre-load-modal").removeClass("fade-out");
 }
 
@@ -597,13 +600,13 @@ function createEasyButtons()
 $(document).ready(async () => 
 {
     await getGeoJSON();
-    //await getCurrentCountry();
+    await getCurrentCountry();
     populateDropdown(); 
     $("#dropdown").change(onDropdownSelect);
-    updateLatLng(state.currentLatLng);
+    updateLatLng(state.latLng);
     map.on("click", (event) => { onLocalSelect(event.latlng); } );
     map.on("move", onMoveMap);
-    $("#latlng-search").click(onLatLngSearch);
+    $("#search").click(onLatLngSearch);
     createEasyButtons();
     $("#modal").on("hidden.bs.modal", closeModal);
     $("#pre-load-page").addClass("fade-out");

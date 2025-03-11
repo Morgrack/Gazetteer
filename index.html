@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
-    
+<html land="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1"/>
     <title>Gazetteer</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
+    <link rel="manifest" href="assets/favicon/site.webmanifest">
     <link rel="stylesheet" href="libs/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="libs/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="libs/leaflet/leaflet.css" crossorigin="">
@@ -20,14 +24,14 @@
 
     <div class="h-100 w-100 position-absolute" id="map"></div>
 
-    <div class="h-100 w-100 position-absolute pe-none" id="overlay-container">
+    <div class="h-100 w-100 position-absolute pe-none" id="overlay">
         <div class="h-100 w-100 d-flex align-items-center justify-content-center">
-            <img id="crosshair" src="assets/crosshair.png">
+            <img src="assets/crosshair.png" id="crosshair">
         </div>
-        <div class="position-absolute start-50 translate-middle-x bg-light shadow-sm rounded d-flex flex-row justify-content-around align-items-center pe-auto" id="latlng-container">
+        <div class="position-absolute start-50 translate-middle-x bg-light shadow-sm rounded d-flex flex-row justify-content-around align-items-center pe-auto" id="latlng">
             <input class="form-control d-inline-flex shadow" id="lat">
             <input class="form-control d-inline-flex shadow" id="lng">
-            <button class="btn btn-outline-dark border-secondary shadow" id="latlng-search"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <button class="btn btn-outline-dark border-secondary shadow" id="search"><i class="fa-solid fa-magnifying-glass"></i></button>
         </div>
     </div>
 
@@ -35,21 +39,21 @@
         <select class="form-select shadow-sm pe-auto" id="dropdown"></select>
     </div>
 
-    <div class="modal fade" id="modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div aria-labelledby="modal-title" class="modal fade" id="modal">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <img class="display-inline" id="flag" src="assets/unknown.png">
-                    <h1 class="modal-title fs-5" id="modal-title">Modal title</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <img src="assets/unknown.png" class="display-inline" id="flag">
+                    <h1 class="modal-title fs-5" id="modal-title"></h1>
+                    <button type="button" aria-label="Close" data-bs-dismiss="modal" class="btn-close"></button>
                 </div>
                 <div class="modal-body pt-0 pb-0" id="modal-body">
                     <div class="pre-load" id="pre-load-modal"></div>
-                    <div id="modal-container"></div>
+                    <div id="modal-body-container"></div>
                 </div>
                 <div class="modal-footer d-flex justify-content-between">
-                    <div id="modal-extra-info"></div>
-                    <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Close</button>
+                    <div id="modal-footer-container"></div>
+                    <button type="button" data-bs-dismiss="modal" class="btn btn-outline-dark">Close</button>
                 </div>
             </div>
         </div>

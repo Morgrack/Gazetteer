@@ -23,7 +23,7 @@ body
     height: 50px;
 }
 
-#latlng-container
+#latlng
 {
     width: 250px;
     height: 45px;
@@ -50,7 +50,7 @@ body
     min-height: 175px;
 }
 
-#exchange-rate, #time-zone-conversion
+#exchange-rate, #time-zone
 {
     height: 125px;
 }
@@ -60,31 +60,24 @@ body
     text-decoration: none;
 }
 
-#forecast-chart
+#forecast
+{
+    min-height: 300px;
+}
+
+#forecast-graph
 {
     max-height: 165px;
 }
 
-.font-size-20   
+.news-title
 {
-    font-size: 20px;
-}
-
-.latest-news-title
-{
-    color: black;
-    font-weight: bold;
     text-decoration: none;
 }
 
-.latest-news-title:hover
+.news-title:hover
 {
     text-decoration: underline;
-}
-
-.latest-news-categories
-{
-    color: grey
 }
 
 .forecast-button:hover, .forecast-button:active
