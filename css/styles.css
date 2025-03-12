@@ -70,6 +70,12 @@ body
     max-height: 165px;
 }
 
+#address, #favourite-input
+{
+    font-size: 13px;
+    width: 200px;
+}
+
 .news-title
 {
     text-decoration: none;

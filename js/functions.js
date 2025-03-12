@@ -600,7 +600,7 @@ function createEasyButtons()
 $(document).ready(async () => 
 {
     await getGeoJSON();
-    await getCurrentCountry();
+    //await getCurrentCountry();
     populateDropdown(); 
     $("#dropdown").change(onDropdownSelect);
     updateLatLng(state.latLng);
