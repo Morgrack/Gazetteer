@@ -103,12 +103,31 @@ function updateFlag()
     });
 }
 
+function disableButtons()
+{
+    if (state.country.isoa3 === "--") 
+    {
+        buttons.openNationalOverview.disable();
+        buttons.openExchangeRate.disable();
+        buttons.openTimeZoneConversion.disable();
+        buttons.openLatestNews.disable();
+        buttons.openWikipediaArticle.disable();
+        return;
+    }
+    buttons.openNationalOverview.enable();
+    buttons.openExchangeRate.enable();
+    buttons.openTimeZoneConversion.enable();
+    buttons.openLatestNews.enable();
+    buttons.openWikipediaArticle.enable();
+}
+
 //ON DROPDOWN SELECT
 function onDropdownSelect()
 {
     [state.country.isoa2, state.country.isoa3, state.country.ison3, state.country.name] = $("#dropdown").val().split(',');
     drawCountryBorder(true);
     updateFlag();
+    disableButtons();
 }
 
 //UPDATE LATLNG
@@ -586,14 +605,15 @@ function closeModal()
 }
 
 //CREATE EASY BUTTONS
+const buttons = { openNationalOverview: null, openExchangeRate: null, openTimeZoneConversion: null, openLatestNews: null, openWikipediaArticle: null, openLocalFavourites: null }
 function createEasyButtons()
 {
-    L.easyButton("fa-solid fa-globe", openNationalOverview).addTo(map);
-    L.easyButton("fa-solid fa-money-bill-transfer", openExchangeRate).addTo(map);
-    L.easyButton("fa-solid fa-clock-rotate-left", openTimeZoneConversion).addTo(map);
-    L.easyButton("fa-solid fa-newspaper", openLatestNews).addTo(map);
-    L.easyButton("fa-brands fa-wikipedia-w", openWikipediaArticle).addTo(map);
-    L.easyButton("fa-solid fa-heart", openLocalFavourites).addTo(map);
+    buttons.openNationalOverview = L.easyButton("fa-solid fa-globe", openNationalOverview).addTo(map);
+    buttons.openExchangeRate = L.easyButton("fa-solid fa-money-bill-transfer", openExchangeRate).addTo(map);
+    buttons.openTimeZoneConversion = L.easyButton("fa-solid fa-clock-rotate-left", openTimeZoneConversion).addTo(map);
+    buttons.openLatestNews = L.easyButton("fa-solid fa-newspaper", openLatestNews).addTo(map);
+    buttons.openWikipediaArticle = L.easyButton("fa-brands fa-wikipedia-w", openWikipediaArticle).addTo(map);
+    buttons.openLocalFavourites = L.easyButton("fa-solid fa-heart", openLocalFavourites).addTo(map);
 }
 
 //DOCUMENT READY
