@@ -1,6 +1,6 @@
 REMAINING:
 - Favourites
-- Markercluster
+- Markercluster and disable overlay
 - DBNomics
 - Favicon
 - Error Handling
