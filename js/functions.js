@@ -3,7 +3,7 @@ const state =
 {
     allowLatLngUpdate: true,
     country: { isoa2: "AF", isoa3: "AFG", ison3: "004", name: "Afghanistan" },
-    flag: "assets/unknown.png",
+    flag: "assets/images/unknown.png",
     graphics: { border: null, forecast: null },
     latLng: { lat: 34.52, lng: 69.18 }
 }
@@ -93,7 +93,7 @@ function drawCountryBorder(fitBounds)
 //UPDATE FLAG
 function updateFlag()
 {
-    $("#flag").attr("src", "assets/unknown.png");
+    $("#flag").attr("src", "assets/images/unknown.png");
     if (state.country.isoa3 === "--") { return; }
     $.ajax({ url: "php/restcountries/getFlagFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.country.isoa3 } }).then((restCountriesResult) => 
     {
@@ -337,13 +337,13 @@ function getLocalDetails()
                 }
                 else
                 {
-                    $("#flag").attr("src", "assets/pirate.png");
+                    $("#flag").attr("src", "assets/images/pirate.png");
                 }
             });
         }
         else
         {
-            $("#flag").attr("src", "assets/pirate.png");
+            $("#flag").attr("src", "assets/images/pirate.png");
         }
     })
 }
@@ -513,7 +513,7 @@ async function openLocalFavourites() //TODO: populate with cookies
 //OPEN LOCAL INFORMATION
 async function openLocalInformation()
 {
-    $("#flag").attr("src", "assets/unknown.png");
+    $("#flag").attr("src", "assets/images/unknown.png");
     getLocalDetails();
     $("#modal-title").html("Local Information");
     $("#modal-body-container").append(await $.get("html/body/local_information.html"));
