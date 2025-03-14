@@ -60,6 +60,11 @@ body
     text-decoration: none;
 }
 
+#local-information-nav
+{
+    margin: 0 -16px;
+}
+
 #forecast
 {
     min-height: 300px;
@@ -73,7 +78,7 @@ body
 #address, #favourite-input
 {
     font-size: 13px;
-    width: 200px;
+    width: 205px;
 }
 
 .news-title
@@ -162,4 +167,12 @@ body
     visibility: hidden;
     opacity: 0;
     transition: visibility 0s 0.5s, opacity 0.5s linear;
+}
+
+@media screen and (max-width: 390px) 
+{
+    #address, #favourite-input
+    {
+        width: 170px;
+    }
 }
