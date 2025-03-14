@@ -15,7 +15,7 @@ if ($output["status"]["code"] === 200)
             [
                 "category" => $result["category"],
                 "image_url" => $result["image_url"],
-                "source_url" => $result["source_url"],
+                "link" => $result["link"],
                 "title" => $result["title"]
             ];
         }

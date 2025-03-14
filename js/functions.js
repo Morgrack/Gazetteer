@@ -494,7 +494,7 @@ async function openLatestNews()
         {
             const newElement = $(html[0].outerHTML);
             if (result.image_url) { newElement.find(".news-image").attr("src", result.image_url); }
-            newElement.find(".news-title").attr("href", result.source_url);
+            newElement.find(".news-title").attr("href", result.link);
             newElement.find(".news-title").html(result.title);
             newElement.find(".news-categories").html(result.category.map(word => word.slice(0, 1).toUpperCase() + word.slice(1)).join(", "));
             $("#modal-body-container").append(newElement);
