@@ -1,7 +1,8 @@
 REMAINING:
 - Favourites
-- Markercluster and disable overlay
+- Overlay toggle
+- Markercluster
 - DBNomics
-- Favicon
-- Error Handling
-- Refactor (reduce CSS, resize imags to bring down filesize, clean up libs)
+- Time zone footer
+- Responsive design
+- Refactor (resize images to bring down filesize)
