@@ -326,12 +326,74 @@ function drawForecastGraph(forecasts) //TODO: add most statistics, including sno
     )
 }
 
+//GET COOKIE
+function getCookie(name)
+{
+    let cookies = document.cookie.split("; ");
+    cookies = cookies.map((pair) => pair.split('='));
+    for (let pair of cookies)
+    {
+        if (pair[0] !== name) { continue; }
+        return pair[1];
+    }
+    return '';
+}
+
+//SET COOKIE
+function setCookie(name, value, days) 
+{
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expiry = "expires="+ date.toUTCString();
+    document.cookie = name + "=" + value + ";" + expiry + ";path=/";
+}
+
 //SAVE TO FAVOURITES
 function saveToFavourites()
 {
-    const input = $("#favourite-input").val();
-    let cookies = document.cookie.split(";")
-    cookies = cookies.map((pair) => pair.split("="));
+    const cookie = getCookie("Favourites");
+    const favourites = cookie === '' ? {} : JSON.parse(cookie);
+    const name = $("#favourite-input").val();
+    if (favourites.hasOwnProperty(name))
+    {
+        alert("Name already taken. Please input another.");
+        return;
+    }
+    favourites[name] = state.latLng;
+    setCookie("Favourites", JSON.stringify(favourites), 365);
+}
+
+//DELETE FROM FAVOURITES
+function deleteFromFavourites(name)
+{
+    const cookie = getCookie("Favourites");
+    const favourites = JSON.parse(cookie);
+    delete favourites[name];
+    setCookie("Favourites", JSON.stringify(favourites), 365);
+}
+
+//GET FAVOURITES
+async function getFavourites()
+{
+    $("#modal-body-container").empty();
+    const cookie = getCookie("Favourites");
+    if (cookie !== '')
+    {
+        const html = $(await $.get("html/reusable/favourite.html"));
+        const favourites = JSON.parse(cookie);
+        for (key of Object.keys(favourites))
+        {
+            const newElement = $(html[0].outerHTML);
+            newElement.find(".favourite-name").html(key);
+            newElement.find(".favourite-latlng").html(`${roundToDecimalPlace(Number(favourites[key].lat), 4)}, ${roundToDecimalPlace(Number(favourites[key].lng), 4)}`);
+            newElement.find(".favourite-delete").click(() => 
+            {
+                deleteFromFavourites(key);
+                getFavourites();
+            });
+            $("#modal-body-container").append(newElement);
+        }
+    }
 }
 
 //GET LOCAL DETAILS
@@ -524,7 +586,7 @@ async function openLocalFavourites() //TODO: populate with cookies
 {
     $("#flag").css("display", "none");
     $("#modal-title").html("Local Favourites");
-    $("#modal-body-container").append(await $.get("html/reusable/favourite.html"));
+    await getFavourites();
     $("#modal").modal("show");
     $("#pre-load-modal").addClass("fade-out");
 }
