@@ -363,37 +363,28 @@ function saveToFavourites()
     setCookie("Favourites", JSON.stringify(favourites), 365);
 }
 
+//SELECT FAVOURITE
+function selectFavourite(lat, lng)
+{
+    $("#modal").modal("hide");
+    setTimeout(() => { onLocalSelect({ lat: lat, lng: lng }) }, 300);
+}
+
 //DELETE FROM FAVOURITES
 function deleteFromFavourites(name)
 {
+    $(".favourite").each(function()
+    {
+        if ($(this).find(".favourite-name").html() === name)
+        {
+            $(this).remove();
+            return false;
+        }
+    });
     const cookie = getCookie("Favourites");
     const favourites = JSON.parse(cookie);
     delete favourites[name];
     setCookie("Favourites", JSON.stringify(favourites), 365);
-}
-
-//GET FAVOURITES
-async function getFavourites()
-{
-    $("#modal-body-container").empty();
-    const cookie = getCookie("Favourites");
-    if (cookie !== '')
-    {
-        const html = $(await $.get("html/reusable/favourite.html"));
-        const favourites = JSON.parse(cookie);
-        for (key of Object.keys(favourites))
-        {
-            const newElement = $(html[0].outerHTML);
-            newElement.find(".favourite-name").html(key);
-            newElement.find(".favourite-latlng").html(`${roundToDecimalPlace(Number(favourites[key].lat), 4)}, ${roundToDecimalPlace(Number(favourites[key].lng), 4)}`);
-            newElement.find(".favourite-delete").click(() => 
-            {
-                deleteFromFavourites(key);
-                getFavourites();
-            });
-            $("#modal-body-container").append(newElement);
-        }
-    }
 }
 
 //GET LOCAL DETAILS
@@ -584,9 +575,24 @@ async function openWikipediaArticle()
 //OPEN LOCAL FAVOURITES
 async function openLocalFavourites() //TODO: populate with cookies
 {
+    
     $("#flag").css("display", "none");
     $("#modal-title").html("Local Favourites");
-    await getFavourites();
+    const cookie = getCookie("Favourites");
+    if (cookie !== '')
+    {
+        const html = $(await $.get("html/reusable/favourite.html"));
+        const favourites = JSON.parse(cookie);
+        for (let key of Object.keys(favourites))
+        {
+            const newElement = $(html[0].outerHTML);
+            newElement.find(".favourite-name").html(key);
+            newElement.find(".favourite-latlng").html(`${roundToDecimalPlace(Number(favourites[key].lat), 4)}, ${roundToDecimalPlace(Number(favourites[key].lng), 4)}`);
+            newElement.find(".favourite-select").click(() => { selectFavourite(Number(favourites[key].lat), Number(favourites[key].lng)) });
+            newElement.find(".favourite-delete").click(() => { deleteFromFavourites(key); });
+            $("#modal-body-container").append(newElement);
+        }
+    }
     $("#modal").modal("show");
     $("#pre-load-modal").addClass("fade-out");
 }
