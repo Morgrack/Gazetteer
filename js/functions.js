@@ -4,7 +4,7 @@ const state =
     allowLatLngUpdate: true,
     country: { isoa2: "AF", isoa3: "AFG", ison3: "004", name: "Afghanistan" },
     flag: "assets/images/unknown.png",
-    graphics: { border: null, forecast: null },
+    graphics: { border: null, forecast: null, capitalMarkers: null, airportMarkers: null, parkMarkers: null },
     latLng: { lat: 34.52, lng: 69.18 }
 }
 
@@ -50,6 +50,17 @@ async function getCurrentCountry()
     }
 }
 
+//ADD LAYER CONTROLS
+function addLayerControls()
+{
+    state.graphics.capitalMarkers = new L.LayerGroup().addTo(map);
+    state.graphics.airportMarkers = new L.MarkerClusterGroup().addTo(map);
+    state.graphics.parkMarkers = new L.MarkerClusterGroup().addTo(map);
+    layerControl.addOverlay(state.graphics.capitalMarkers, "Capitals");
+    layerControl.addOverlay((state.graphics.airportMarkers), "Airports");
+    layerControl.addOverlay((state.graphics.parkMarkers), "Parks");
+}
+
 //POPULATE DROPDOWN
 function populateDropdown()
 {
@@ -67,6 +78,7 @@ function populateDropdown()
     }
     $("#dropdown").val(`${state.country.isoa2},${state.country.isoa3},${state.country.ison3},${state.country.name}`);
     drawCountryBorder(false);
+    drawClusterMarkers();
     updateFlag();
 }
 
@@ -88,6 +100,50 @@ function drawCountryBorder(fitBounds)
         state.graphics.border = L.geoJSON(feature, { color: "black", dashArray: 5, fillOpacity: 0, weight: 3 }).addTo(map);
         if (fitBounds) { map.fitBounds(state.graphics.border.getBounds()); }
     }
+}
+
+//DRAW CLUSTER MARKERS
+function drawClusterMarkers()
+{ 
+    state.graphics.capitalMarkers.eachLayer((layer) => { state.graphics.capitalMarkers.removeLayer(layer) });
+    state.graphics.airportMarkers.eachLayer((layer) => { state.graphics.airportMarkers.removeLayer(layer) });
+    state.graphics.parkMarkers.eachLayer((layer) => { state.graphics.parkMarkers.removeLayer(layer) });
+    if (state.country.isoa3 === "--") { return; }
+    Promise.all([
+        $.ajax({ url: "php/geonames/getAirportsFromISOA2.php", type: "GET", dataType: "json", data: { isoa2: state.country.isoa2 } }),
+        $.ajax({ url: "php/geonames/getParksFromISOA2.php", type: "GET", dataType: "json", data: { isoa2: state.country.isoa2 } }),
+    ])
+    .then(([geoNamesAirports, geoNamesParks]) =>
+    {
+        if (geoNamesAirports.data)
+        {
+            const airportIcon = L.icon.glyph({
+                className: 'blue-glyph',
+                prefix: 'fa',
+                glyph: 'plane-up',
+                glyphSize: '14px',
+                glyphAnchor: [0, 5]
+            });
+            for (let airport of geoNamesAirports.data) 
+            {
+                state.graphics.airportMarkers.addLayer(L.marker([airport['lat'], airport['lng']], { title: airport['name'], alt: airport['name'] + ' Marker', icon: airportIcon }).bindPopup(airport['name']));
+            }
+        }
+        if (geoNamesParks.data)
+        {
+            const parkIcon = L.icon.glyph({
+                className: 'blue-glyph',
+                prefix: 'fa',
+                glyph: 'tree',
+                glyphSize: '14px',
+                glyphAnchor: [0, 5]
+            });
+            for (let park of geoNamesParks.data)
+            {
+                state.graphics.parkMarkers.addLayer(L.marker([park['lat'], park['lng']], { title: park['name'], alt: park['name'] + ' Marker', icon: parkIcon }).bindPopup(park['name']));
+            }
+        }
+    });
 }
 
 //UPDATE FLAG
@@ -126,6 +182,7 @@ function onDropdownSelect()
 {
     [state.country.isoa2, state.country.isoa3, state.country.ison3, state.country.name] = $("#dropdown").val().split(',');
     drawCountryBorder(true);
+    drawClusterMarkers();
     updateFlag();
     disableButtons();
 }
@@ -689,6 +746,7 @@ $(document).ready(async () =>
 {
     await getGeoJSON();
     //await getCurrentCountry();
+    addLayerControls();
     populateDropdown(); 
     $("#dropdown").change(onDropdownSelect);
     updateLatLng(state.latLng);

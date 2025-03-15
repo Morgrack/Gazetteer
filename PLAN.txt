@@ -1,7 +1,7 @@
 REMAINING:
-- Favourites
+- Favourites ✓
 - Overlay toggle
-- Markercluster
+- Markercluster ✓
 - DBNomics
 - Time zone footer
 - Responsive design
