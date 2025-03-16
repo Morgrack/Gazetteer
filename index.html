@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
-<body>
+<body class="w-100 h-100 m-0">
 
     <div class="pre-load" id="pre-load-page"></div>
 
@@ -29,7 +29,7 @@
         <div class="h-100 w-100 d-flex align-items-center justify-content-center">
             <img src="assets/images/crosshair.png" id="crosshair">
         </div>
-        <div class="position-absolute start-50 translate-middle-x bg-light shadow-sm rounded d-flex flex-row justify-content-around align-items-center pe-auto" id="latlng">
+        <div class="position-absolute start-50 translate-middle-x bottom-0 mb-4 bg-light shadow-sm rounded d-flex flex-row justify-content-around align-items-center pe-auto" id="latlng">
             <input class="form-control d-inline-flex shadow" id="lat">
             <input class="form-control d-inline-flex shadow" id="lng">
             <button class="btn btn-outline-dark border-secondary shadow" id="search"><i class="fa-solid fa-magnifying-glass"></i></button>
@@ -37,7 +37,7 @@
     </div>
 
     <div class="w-100 position-fixed top-0 pe-none pt-2">
-        <select class="form-select shadow-sm pe-auto" id="dropdown"></select>
+        <select class="form-select mx-auto shadow-sm pe-auto" id="dropdown"></select>
     </div>
 
     <div aria-labelledby="modal-title" tabindex="-1" class="modal fade" id="modal">

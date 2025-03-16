@@ -1,8 +1,5 @@
 body
 {
-    width: 100vw;
-    height: 100vh;
-    margin: 0 auto;
     font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -13,7 +10,6 @@ body
 
 #dropdown 
 {
-    margin: 0 auto;
     width: 180px;
 }
 
@@ -60,11 +56,6 @@ body
     height: 125px;
 }
 
-#wikipedia-article-link, .landmark-link
-{
-    text-decoration: none;
-}
-
 #local-information-nav
 {
     margin: 0 -17px;
@@ -84,11 +75,6 @@ body
 {
     font-size: 13px;
     width: 205px;
-}
-
-.news-title
-{
-    text-decoration: none;
 }
 
 .news-title:hover
