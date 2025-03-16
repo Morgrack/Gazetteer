@@ -77,6 +77,11 @@ body
     width: 205px;
 }
 
+.news-title
+{
+    text-decoration: none;
+}
+
 .news-title:hover
 {
     text-decoration: underline;

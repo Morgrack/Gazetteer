@@ -730,7 +730,7 @@ async function openLocalInformation()
     if (geoNamesResult.data)
     {
         const html = $(await $.get("html/reusable/landmark.html"));
-        for (let landmark of geoNamesResult.data.geonames) 
+        for (let landmark of geoNamesResult.data) 
         {
             const newElement = $(html[0].outerHTML);
             newElement.find(".landmark-title").html(landmark.title);
@@ -776,7 +776,7 @@ function createEasyButtons()
 $(document).ready(async () => 
 {
     await getGeoJSON();
-    //await getCurrentCountry();
+    await getCurrentCountry();
     addLayerControls();
     populateDropdown(); 
     $("#dropdown").change(onDropdownSelect);

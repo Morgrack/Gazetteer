@@ -8,15 +8,17 @@ if ($output["status"]["code"] === 200)
 {
     if (count(value: $output["data"]["geonames"]) > 0)
     {
-        for ($i = 0; $i < count(value: $output["data"]["geonames"]); $i++)
+        $newResults = [];
+        foreach ($output["data"]["geonames"] as $result)
         {
-            $output["data"]["geonames"][$i] = 
+            $newResults[] =
             [
-                "summary" => $output["data"]["geonames"][$i]["summary"], 
-                "title" => $output["data"]["geonames"][$i]["title"], 
-                "wikipediaURL" => $output["data"]["geonames"][$i]["wikipediaUrl"]
+                "summary" => $result["summary"],
+                "title" => $result["title"],
+                "wikipediaURL" => $result["wikipediaUrl"]
             ];
         }
+        $output["data"] = $newResults;
     }
     else
     {
