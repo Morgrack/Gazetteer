@@ -1,6 +1,6 @@
 REMAINING:
-- Class name order consistency in HTML files
 - Economic modal
 - Favourites button
 - Overlay toggle
 - Time zone footer
+- More marker clusters

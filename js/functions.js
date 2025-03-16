@@ -80,18 +80,17 @@ function populateDropdown()
     updateFlag();
 }
 
-//ROUND TO DECIMAL PLACE
-function roundToDecimalPlace(value, degrees)
+function resetGraphics()
 {
-    const factor = Math.pow(10, degrees);
-    return Math.round(value*factor)/factor;
+    if (state.graphics.border !== null) { state.graphics.border.remove(); }
+    state.graphics.airports.eachLayer((layer) => { state.graphics.airports.removeLayer(layer) });
+    state.graphics.parks.eachLayer((layer) => { state.graphics.parks.removeLayer(layer) });
+    $("#flag").attr("src", "assets/images/unknown.png");
 }
 
 //DRAW COUNTRY BORDER
 function drawCountryBorder(fitBounds)
 {
-    if (state.graphics.border !== null) { state.graphics.border.remove(); }
-    if (state.country.isoa3 === "--") { return; }
     for (let feature of geoJSON.features)
     {
         if (feature.properties.iso_a3 !== state.country.isoa3) { continue; }
@@ -103,9 +102,6 @@ function drawCountryBorder(fitBounds)
 //DRAW CLUSTER MARKERS
 function drawClusterMarkers()
 { 
-    state.graphics.airports.eachLayer((layer) => { state.graphics.airports.removeLayer(layer) });
-    state.graphics.parks.eachLayer((layer) => { state.graphics.parks.removeLayer(layer) });
-    if (state.country.isoa3 === "--") { return; }
     Promise.all([
         $.ajax({ url: "php/geonames/getAirportsFromISOA2.php", type: "GET", dataType: "json", data: { isoa2: state.country.isoa2 } }),
         $.ajax({ url: "php/geonames/getParksFromISOA2.php", type: "GET", dataType: "json", data: { isoa2: state.country.isoa2 } }),
@@ -114,13 +110,7 @@ function drawClusterMarkers()
     {
         if (geoNamesAirports.data)
         {
-            const airportIcon = L.icon.glyph({
-                className: 'blue-glyph',
-                prefix: 'fa',
-                glyph: 'plane-up',
-                glyphSize: '14px',
-                glyphAnchor: [0, 5]
-            });
+            const airportIcon = L.icon.glyph({ className: 'blue-glyph', prefix: 'fa', glyph: 'plane-up', glyphSize: '14px', glyphAnchor: [0, 5] });
             for (let airport of geoNamesAirports.data) 
             {
                 state.graphics.airports.addLayer(L.marker([airport['lat'], airport['lng']], { title: airport['name'], alt: airport['name'] + ' Marker', icon: airportIcon }).bindPopup(airport['name']));
@@ -128,13 +118,7 @@ function drawClusterMarkers()
         }
         if (geoNamesParks.data)
         {
-            const parkIcon = L.icon.glyph({
-                className: 'blue-glyph',
-                prefix: 'fa',
-                glyph: 'tree',
-                glyphSize: '14px',
-                glyphAnchor: [0, 5]
-            });
+            const parkIcon = L.icon.glyph({ className: 'blue-glyph', prefix: 'fa', glyph: 'tree', glyphSize: '14px', glyphAnchor: [0, 5] });
             for (let park of geoNamesParks.data)
             {
                 state.graphics.parks.addLayer(L.marker([park['lat'], park['lng']], { title: park['name'], alt: park['name'] + ' Marker', icon: parkIcon }).bindPopup(park['name']));
@@ -146,8 +130,6 @@ function drawClusterMarkers()
 //UPDATE FLAG
 function updateFlag()
 {
-    $("#flag").attr("src", "assets/images/unknown.png");
-    if (state.country.isoa3 === "--") { return; }
     $.ajax({ url: "php/restcountries/getFlagFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.country.isoa3 } }).then((restCountriesResult) => 
     {
         if (!restCountriesResult.data) { return; } 
@@ -156,33 +138,47 @@ function updateFlag()
     });
 }
 
-//DISABLE BUTTONS
-function toggleButtons()
+//ENABLE EASY BUTTONS
+function enableEasyButtons()
 {
-    if (state.country.isoa3 === "--") 
-    {
-        buttons.openNationalOverview.disable();
-        buttons.openExchangeRate.disable();
-        buttons.openTimeZoneConversion.disable();
-        buttons.openLatestNews.disable();
-        buttons.openWikipediaArticle.disable();
-        return;
-    }
-    buttons.openNationalOverview.enable();
-    buttons.openExchangeRate.enable();
-    buttons.openTimeZoneConversion.enable();
-    buttons.openLatestNews.enable();
-    buttons.openWikipediaArticle.enable();
+    easyButtons.openNationalOverview.enable();
+    easyButtons.openExchangeRate.enable();
+    easyButtons.openTimeZoneConversion.enable();
+    easyButtons.openLatestNews.enable();
+    easyButtons.openWikipediaArticle.enable();
+}
+
+function disableEasyButtons()
+{
+    easyButtons.openNationalOverview.disable();
+    easyButtons.openExchangeRate.disable();
+    easyButtons.openTimeZoneConversion.disable();
+    easyButtons.openLatestNews.disable();
+    easyButtons.openWikipediaArticle.disable();
 }
 
 //ON DROPDOWN SELECT
 function onDropdownSelect()
 {
     [state.country.isoa2, state.country.isoa3, state.country.ison3, state.country.name] = $("#dropdown").val().split(',');
+    resetGraphics()
+    if (state.country.isoa3 === "--") 
+    { 
+        disableEasyButtons();
+        return; 
+    }
+    enableEasyButtons();
     drawCountryBorder(true);
     drawClusterMarkers();
     updateFlag();
     toggleButtons();
+}
+
+//ROUND TO DECIMAL PLACE
+function roundToDecimalPlace(value, degrees)
+{
+    const factor = Math.pow(10, degrees);
+    return Math.round(value*factor)/factor;
 }
 
 //UPDATE LATLNG
@@ -227,7 +223,7 @@ function onExchangeRateChange(collatedInfo)
     const outputCurrency = $("#exchange-rate-output-dropdown").val();
     $("#exchange-rate-input-symbol").html(collatedInfo[inputCurrency].symbol);
     $("#exchange-rate-output-symbol").html(collatedInfo[outputCurrency].symbol);
-    const outputValue = roundToDecimalPlace($("#exchange-rate-input-text").val()/collatedInfo[inputCurrency].rate*collatedInfo[outputCurrency].rate, 2);
+    const outputValue = roundToDecimalPlace($("#exchange-rate-input-text").val() / collatedInfo[inputCurrency].rate * collatedInfo[outputCurrency].rate, 2);
     $("#exchange-rate-output-text").val(outputValue);
 }
 
@@ -326,7 +322,7 @@ function highlightButton(event) //TODO: work out CSS for button press
 }
 
 //DRAW FORECAST CHART
-function drawForecastGraph(forecasts) //TODO: add most statistics, including snow
+function drawForecastGraph(forecasts)
 {
     if (state.graphics.forecast !== null) { state.graphics.forecast.destroy(); }
     const startTime = forecasts[0].dt_txt.slice(-8, -3);
@@ -424,13 +420,6 @@ function saveToFavourites()
     setCookie("Favourites", JSON.stringify(favourites), 365);
 }
 
-//SELECT FAVOURITE
-function selectFavourite(lat, lng)
-{
-    $("#modal").modal("hide");
-    setTimeout(() => { onLocalSelect({ lat: lat, lng: lng }) }, 300);
-}
-
 //DELETE FROM FAVOURITES
 function deleteFromFavourites(name)
 {
@@ -446,6 +435,13 @@ function deleteFromFavourites(name)
     const favourites = JSON.parse(cookie);
     delete favourites[name];
     setCookie("Favourites", JSON.stringify(favourites), 365);
+}
+
+//SELECT FAVOURITE
+function selectFavourite(lat, lng)
+{
+    $("#modal").modal("hide");
+    setTimeout(() => { onLocalSelect({ lat: lat, lng: lng }) }, 300);
 }
 
 //GET LOCAL DETAILS
@@ -482,7 +478,7 @@ function getLocalDetails()
 }
 
 //OPEN NATIONAL OVERVIEW
-async function openNationalOverview() //TODO: add UN data for GDP
+async function openNationalOverview()
 {
     $("#modal-title").html("National Overview");
     $("#modal-body-container").append(await $.get("html/body/national_overview.html"));
@@ -656,7 +652,6 @@ async function openWikipediaArticle()
 //OPEN LOCAL FAVOURITES
 async function openLocalFavourites() //TODO: populate with cookies
 {
-    
     $("#flag").css("display", "none");
     $("#modal-title").html("Local Favourites");
     const cookie = getCookie("Favourites");
@@ -761,15 +756,15 @@ function closeModal()
 }
 
 //CREATE EASY BUTTONS
-const buttons = { openNationalOverview: null, openExchangeRate: null, openTimeZoneConversion: null, openLatestNews: null, openWikipediaArticle: null, openLocalFavourites: null }
+const easyButtons = { openNationalOverview: null, openExchangeRate: null, openTimeZoneConversion: null, openLatestNews: null, openWikipediaArticle: null, openLocalFavourites: null }
 function createEasyButtons()
 {
-    buttons.openNationalOverview = L.easyButton("fa-solid fa-globe", openNationalOverview).addTo(map);
-    buttons.openExchangeRate = L.easyButton("fa-solid fa-money-bill-transfer", openExchangeRate).addTo(map);
-    buttons.openTimeZoneConversion = L.easyButton("fa-solid fa-clock-rotate-left", openTimeZoneConversion).addTo(map);
-    buttons.openLatestNews = L.easyButton("fa-solid fa-newspaper", openLatestNews).addTo(map);
-    buttons.openWikipediaArticle = L.easyButton("fa-brands fa-wikipedia-w", openWikipediaArticle).addTo(map);
-    buttons.openLocalFavourites = L.easyButton("fa-solid fa-heart", openLocalFavourites).addTo(map);
+    easyButtons.openNationalOverview = L.easyButton("fa-solid fa-globe", openNationalOverview).addTo(map);
+    easyButtons.openExchangeRate = L.easyButton("fa-solid fa-money-bill-transfer", openExchangeRate).addTo(map);
+    easyButtons.openTimeZoneConversion = L.easyButton("fa-solid fa-clock-rotate-left", openTimeZoneConversion).addTo(map);
+    easyButtons.openLatestNews = L.easyButton("fa-solid fa-newspaper", openLatestNews).addTo(map);
+    easyButtons.openWikipediaArticle = L.easyButton("fa-brands fa-wikipedia-w", openWikipediaArticle).addTo(map);
+    easyButtons.openLocalFavourites = L.easyButton("fa-solid fa-heart", openLocalFavourites).addTo(map);
 }
 
 //DOCUMENT READY
