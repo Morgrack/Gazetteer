@@ -4,7 +4,7 @@ const state =
     allowLatLngUpdate: true,
     country: { isoa2: "AF", isoa3: "AFG", ison3: "004", name: "Afghanistan" },
     flag: "assets/images/unknown.png",
-    graphics: { border: null, forecast: null, capitalMarkers: null, airportMarkers: null, parkMarkers: null },
+    graphics: { border: null, forecast: null, airports: null, parks: null },
     latLng: { lat: 34.52, lng: 69.18 }
 }
 
@@ -53,12 +53,10 @@ async function getCurrentCountry()
 //ADD LAYER CONTROLS
 function addLayerControls()
 {
-    state.graphics.capitalMarkers = new L.LayerGroup().addTo(map);
-    state.graphics.airportMarkers = new L.MarkerClusterGroup().addTo(map);
-    state.graphics.parkMarkers = new L.MarkerClusterGroup().addTo(map);
-    layerControl.addOverlay(state.graphics.capitalMarkers, "Capitals");
-    layerControl.addOverlay((state.graphics.airportMarkers), "Airports");
-    layerControl.addOverlay((state.graphics.parkMarkers), "Parks");
+    state.graphics.airports = new L.MarkerClusterGroup().addTo(map);
+    state.graphics.parks = new L.MarkerClusterGroup().addTo(map);
+    layerControl.addOverlay((state.graphics.airports), "Airports");
+    layerControl.addOverlay((state.graphics.parks), "Parks");
 }
 
 //POPULATE DROPDOWN
@@ -105,9 +103,8 @@ function drawCountryBorder(fitBounds)
 //DRAW CLUSTER MARKERS
 function drawClusterMarkers()
 { 
-    state.graphics.capitalMarkers.eachLayer((layer) => { state.graphics.capitalMarkers.removeLayer(layer) });
-    state.graphics.airportMarkers.eachLayer((layer) => { state.graphics.airportMarkers.removeLayer(layer) });
-    state.graphics.parkMarkers.eachLayer((layer) => { state.graphics.parkMarkers.removeLayer(layer) });
+    state.graphics.airports.eachLayer((layer) => { state.graphics.airports.removeLayer(layer) });
+    state.graphics.parks.eachLayer((layer) => { state.graphics.parks.removeLayer(layer) });
     if (state.country.isoa3 === "--") { return; }
     Promise.all([
         $.ajax({ url: "php/geonames/getAirportsFromISOA2.php", type: "GET", dataType: "json", data: { isoa2: state.country.isoa2 } }),
@@ -126,7 +123,7 @@ function drawClusterMarkers()
             });
             for (let airport of geoNamesAirports.data) 
             {
-                state.graphics.airportMarkers.addLayer(L.marker([airport['lat'], airport['lng']], { title: airport['name'], alt: airport['name'] + ' Marker', icon: airportIcon }).bindPopup(airport['name']));
+                state.graphics.airports.addLayer(L.marker([airport['lat'], airport['lng']], { title: airport['name'], alt: airport['name'] + ' Marker', icon: airportIcon }).bindPopup(airport['name']));
             }
         }
         if (geoNamesParks.data)
@@ -140,7 +137,7 @@ function drawClusterMarkers()
             });
             for (let park of geoNamesParks.data)
             {
-                state.graphics.parkMarkers.addLayer(L.marker([park['lat'], park['lng']], { title: park['name'], alt: park['name'] + ' Marker', icon: parkIcon }).bindPopup(park['name']));
+                state.graphics.parks.addLayer(L.marker([park['lat'], park['lng']], { title: park['name'], alt: park['name'] + ' Marker', icon: parkIcon }).bindPopup(park['name']));
             }
         }
     });
@@ -159,6 +156,7 @@ function updateFlag()
     });
 }
 
+//DISABLE BUTTONS
 function disableButtons()
 {
     if (state.country.isoa3 === "--") 
