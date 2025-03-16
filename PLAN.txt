@@ -1,6 +1,6 @@
 REMAINING:
 - Economic modal
-- Favourites button
+- Favourites button and markers
 - Overlay toggle
 - Time zone footer
 - More marker clusters
