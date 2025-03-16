@@ -199,7 +199,13 @@ function onLocalSelect(newLatLng)
     updateLatLng(newLatLng);
     state.allowLatLngUpdate = false;
     map.panTo([newLatLng.lat, newLatLng.lng], { duration: 0.25 });
-    setTimeout(() => { state.allowLatLngUpdate = true; openLocalInformation(); }, 270);
+    setTimeout(() => 
+    { 
+        state.allowLatLngUpdate = true; 
+        if (newLatLng.lat < -90 || newLatLng.lat > 90) { return; }
+        if (newLatLng.lng < -180 || newLatLng.lng > 180) { return; }
+        openLocalInformation(); 
+    }, 270);
 }
 
 //ON MOVE MAP

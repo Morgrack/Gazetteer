@@ -1,8 +1,9 @@
-REMAINING:
-- Favourites ✓
-- Overlay toggle
-- Markercluster ✓
+TODAY:
 - DBNomics
-- Time zone footer
 - Responsive design
-- Refactor (resize images to bring down filesize)
+- Error handling
+- Refactor
+
+REMAINING:
+- Overlay toggle
+- Time zone footer
