@@ -20,7 +20,7 @@ if ($output["status"]["code"] === 200)
     }
     else
     {
-        $output["data"] = null;
+        $output["data"] = [];
     }
 }
 $output["status"]["returnedIn"] = intval(value: (microtime(as_float: true) - $executionStartTime) * 1000) . " ms";

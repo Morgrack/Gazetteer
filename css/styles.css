@@ -50,6 +50,11 @@ body
     min-height: 175px;
 }
 
+#disconnected
+{
+    height: 175px;
+}
+
 #exchange-rate, #time-zone
 {
     height: 125px;

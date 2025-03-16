@@ -157,7 +157,7 @@ function updateFlag()
 }
 
 //DISABLE BUTTONS
-function disableButtons()
+function toggleButtons()
 {
     if (state.country.isoa3 === "--") 
     {
@@ -182,7 +182,7 @@ function onDropdownSelect()
     drawCountryBorder(true);
     drawClusterMarkers();
     updateFlag();
-    disableButtons();
+    toggleButtons();
 }
 
 //UPDATE LATLNG
@@ -505,6 +505,10 @@ async function openNationalOverview() //TODO: add UN data for GDP
         $("#roads").html(`Drives on ${restCountriesResult.data.car.side}`);
         $("#time-zones").html(restCountriesResult.data.timezones.join(", "));
     }
+    else 
+    {
+        await showDisconnected();
+    }
     $("#pre-load-modal").addClass("fade-out");
 }
 
@@ -526,13 +530,13 @@ async function openExchangeRate()
         {
             for (let currency of Object.keys(result.currencies))
             {
-                if (!openExchangeRatesResult.data.rates.hasOwnProperty(currency)) { continue; }
+                if (!openExchangeRatesResult.data.hasOwnProperty(currency)) { continue; }
                 collatedInfo[currency] =
                 {
                     code: currency,
                     name: result.currencies[currency].name,
-                    symbol: result.currencies[currency].symbol,
-                    rate: openExchangeRatesResult.data.rates[currency]
+                    rate: openExchangeRatesResult.data[currency],
+                    symbol: result.currencies[currency].symbol
                 }
             }
         }
@@ -550,6 +554,10 @@ async function openExchangeRate()
         $("#exchange-rate-input-dropdown").change(() => { onExchangeRateChange(collatedInfo); });
         $("#exchange-rate-output-dropdown").change(() => { onExchangeRateChange(collatedInfo); });
         onExchangeRateChange(collatedInfo);
+    }
+    else
+    {
+        await showDisconnected();
     }
     $("#pre-load-modal").addClass("fade-out");
 }
@@ -592,6 +600,10 @@ async function openTimeZoneConversion() //TODO: add tick box to keep sync with c
         $("#time-zone-output-dropdown").change(onTimeZoneChange);
         onTimeZoneChange();
     }
+    else
+    {
+        await showDisconnected();
+    }
     $("#pre-load-modal").addClass("fade-out");
 }
 
@@ -614,6 +626,10 @@ async function openLatestNews()
             $("#modal-body-container").append(newElement);
         }
     }
+    else
+    {
+        await showDisconnected();
+    }
     $("#pre-load-modal").addClass("fade-out");
 }
 
@@ -629,6 +645,10 @@ async function openWikipediaArticle()
         $("#wikipedia-article-title").html(geoNamesResult.data.title);
         $("#wikipedia-article-summary").html(geoNamesResult.data.summary);
         $("#wikipedia-article-link").attr("href", "https://" + geoNamesResult.data.wikipediaURL);
+    }
+    else
+    {
+        await showDisconnected();
     }
     $("#pre-load-modal").addClass("fade-out");
 }
@@ -720,6 +740,13 @@ async function openLocalInformation()
         }
     }
     $("#pre-load-modal").addClass("fade-out");
+}
+
+//SHOW DISCONNECTED
+async function showDisconnected()
+{
+    $("#modal-body-container").empty();
+    $("#modal-body-container").append(await $.get("html/reusable/disconnected.html"));
 }
 
 //CLOSE MODAL

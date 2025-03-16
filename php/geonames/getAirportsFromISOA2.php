@@ -23,6 +23,10 @@ if ($output["status"]["code"] === 200)
         }
         $output["data"] = $newResults;
     }
+    else
+    {
+        $output["data"] = [];
+    }
 }
 $output["status"]["returnedIn"] = intval(value: (microtime(as_float: true) - $executionStartTime) * 1000) . " ms";
 echo json_encode(value: $output);

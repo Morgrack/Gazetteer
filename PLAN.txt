@@ -1,8 +1,8 @@
 TODAY:
-- DBNomics
+- Refactor ✓
+- Error handling (do for each modal one by one) ✓
 - Responsive design
-- Error handling
-- Refactor
+- DBNomics
 
 REMAINING:
 - Overlay toggle

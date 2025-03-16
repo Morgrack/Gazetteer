@@ -2,8 +2,8 @@
 
 function fetch($URL): array
 {
-    header(header: 'Content-Type: application/json; charset=UTF-8');
-    header(header: 'Access-Control-Allow-Origin: *'); 
+    header(header: "Content-Type: application/json; charset=UTF-8");
+    header(header: "Access-Control-Allow-Origin: *"); 
     $session = curl_init();
     curl_setopt(handle: $session, option: CURLOPT_RETURNTRANSFER, value: true);
     curl_setopt(handle: $session, option: CURLOPT_URL, value: $URL);
