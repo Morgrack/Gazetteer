@@ -333,12 +333,12 @@ function drawForecastGraph(forecasts) //TODO: add most statistics, including sno
     const endTime = forecasts[forecasts.length - 1].dt_txt.slice(-8, -3);
     let times = ["00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00"];
     times = times.slice(times.indexOf(startTime), times.indexOf(endTime) + 1);
-    const temperatures = []; const windSpeed = []; const precipitation = [];
+    const temp = []; const wind = []; const rain = [];
     forecasts.forEach((forecast) =>
     {
-        temperatures.push(forecast.main.temp);
-        windSpeed.push(forecast.wind.speed);
-        precipitation.push(forecast.rain ? forecast.rain["3h"] : 0);
+        temp.push(forecast.main.temp);
+        wind.push(forecast.wind.speed);
+        rain.push(forecast.rain ? forecast.rain["3h"] : 0);
     })
     state.graphics.forecast = new Chart(
         document.getElementById("forecast-graph"),
@@ -350,22 +350,22 @@ function drawForecastGraph(forecasts) //TODO: add most statistics, including sno
                 datasets:
                 [
                     {
-                        label: "Temperature (°C)",
-                        data: temperatures,
+                        label: "Temp (°C)",
+                        data: temp,
                         borderColor: "rgb(236,110,76)",
                         backgroundColor: "rgb(236,110,76)",
                         tension: 0.25
                     },
                     {
-                        label: "Wind Speed (kph)",
-                        data: windSpeed,
+                        label: "Wind (kph)",
+                        data: wind,
                         borderColor: "rgb(211, 211, 211)",
                         backgroundColor: "rgb(211, 211, 211)",
                         tension: 0.25
                     },
                     {
-                        label: "Precipitation (mm)",
-                        data: precipitation,
+                        label: "Rain (mm)",
+                        data: rain,
                         borderColor: "rgb(173, 216, 230)",
                         backgroundColor: "rgb(173, 216, 230)",
                         tension: 0.25

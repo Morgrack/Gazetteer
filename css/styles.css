@@ -98,6 +98,11 @@ body
     pointer-events: none;
 }
 
+.forecast-title, .forecast-max-temp, .forecast-min-temp
+{
+    font-size: 14px;
+}
+
 .pre-load 
 {
     position: absolute;
@@ -167,8 +172,15 @@ body
 
 @media screen and (max-width: 390px) 
 {
+
     #address, #favourite-input
     {
         width: 170px;
     }
+
+    .forecast-title, .forecast-max-temp, .forecast-min-temp
+    {
+        font-size: 12px;
+    }
+
 }
