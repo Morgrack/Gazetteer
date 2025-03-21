@@ -171,7 +171,6 @@ function onDropdownSelect()
     drawCountryBorder(true);
     drawClusterMarkers();
     updateFlag();
-    toggleButtons();
 }
 
 //ROUND TO DECIMAL PLACE
