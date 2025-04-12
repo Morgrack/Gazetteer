@@ -4,3 +4,4 @@ REMAINING:
 - Overlay toggle
 - Time zone footer
 - More marker clusters
+- Make all DOM appends happen at once rather than within loops
