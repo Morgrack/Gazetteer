@@ -1,7 +1,8 @@
-REMAINING:
-- Economic modal
-- Favourites button and markers
-- Overlay toggle
-- Time zone footer
+HIGH PRIORITY:
+- Economic modal using dbnomics
+- Make all DOM elements append at once rather than within loops
+- Time zone footer for current local time and make the whole modal update live (could be done with a recursive conditional timeout if feeling lazy)
+
+LOW PRIORITY:
 - More marker clusters
-- Make all DOM appends happen at once rather than within loops
+- Overlay / favourites toggles

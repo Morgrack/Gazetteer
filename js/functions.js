@@ -427,7 +427,7 @@ function deleteFromFavourites(name)
         if ($(this).find(".favourite-name").html() === name)
         {
             $(this).remove();
-            return false;
+            return;
         }
     });
     const cookie = getCookie("Favourites");
