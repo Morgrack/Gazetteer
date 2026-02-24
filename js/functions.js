@@ -191,15 +191,16 @@ function updateLatLng(newLatLng)
 //ON LOCAL SELECT
 function onLocalSelect(newLatLng)
 {
+    if (!state.allowLatLngUpdate) { return }
     updateLatLng(newLatLng);
     state.allowLatLngUpdate = false;
     map.panTo([newLatLng.lat, newLatLng.lng], { duration: 0.25 });
-    setTimeout(() => 
+    setTimeout(async () => 
     { 
-        state.allowLatLngUpdate = true; 
         if (newLatLng.lat < -90 || newLatLng.lat > 90) { return; }
         if (newLatLng.lng < -180 || newLatLng.lng > 180) { return; }
-        openLocalInformation(); 
+        await openLocalInformation(); 
+        state.allowLatLngUpdate = true; 
     }, 270);
 }
 
