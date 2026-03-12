@@ -516,7 +516,7 @@ async function openExchangeRate()
     $("#modal").modal("show");
     const [restCountriesCurrentCurrency, restCountriesAllCurrencies, openExchangeRatesResult] = await Promise.all([
         $.ajax({ url: "php/restcountries/getCurrencyFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.country.isoa3 } }),
-        $.ajax({ url: "php/restCountries/getCurrencies.php", type: "GET", dataType: "json" }),
+        $.ajax({ url: "php/restcountries/getCurrencies.php", type: "GET", dataType: "json" }),
         $.ajax({ url: "php/openexchangerates/getExchangeRates.php", type: "GET", dataType: "json" })
     ]);
     if (restCountriesCurrentCurrency.data && restCountriesAllCurrencies.data && openExchangeRatesResult.data)
@@ -566,7 +566,7 @@ async function openTimeZoneConversion() //TODO: add tick box to keep sync with c
     $("#modal").modal("show");
     const [restCountriesCurrentTimeZone, restCountriesAllTimeZones] = await Promise.all([
         $.ajax({ url: "php/restcountries/getTimeZoneFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.country.isoa3 } }),
-        $.ajax({ url: "php/restCountries/getTimeZones.php", type: "GET", dataType: "json" })    
+        $.ajax({ url: "php/restcountries/getTimeZones.php", type: "GET", dataType: "json" })    
     ]);
     if (restCountriesCurrentTimeZone.data && restCountriesAllTimeZones.data)
     {
