@@ -1,7 +1,9 @@
 HIGH PRIORITY:
+- Favourite markers
 - Economic modal using dbnomics
 - Make all DOM elements append at once rather than within loops
 - Time zone footer for current local time and make the whole modal update live (could be done with a recursive conditional timeout if feeling lazy)
+- Missing API information handling and early modal exit handling 
 
 LOW PRIORITY:
 - More marker clusters
