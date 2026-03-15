@@ -4,7 +4,7 @@ const state =
     allowLatLngUpdate: true,
     country: { isoa2: "AF", isoa3: "AFG", ison3: "004", name: "Afghanistan" },
     flag: "assets/images/unknown.png",
-    graphics: { border: null, forecast: null, airports: null, parks: null },
+    graphics: { border: null, forecast: null, markers: null, airports: null, parks: null },
     latLng: { lat: 34.52, lng: 69.18 }
 }
 
@@ -78,6 +78,32 @@ function populateDropdown()
     drawCountryBorder(false);
     drawClusterMarkers();
     updateFlag();
+}
+
+function addFavouriteMarker(title, lat, lng)
+{
+    const heartIcon = L.icon({ iconUrl: "assets/images/heart.png", iconSize: [30, 30] });
+    const newFavMarker = new L.marker([lat, lng], { icon: heartIcon, title });
+    newFavMarker.setZIndexOffset(100);
+    newFavMarker.addTo(map);
+    state.graphics.markers[title] = newFavMarker;
+}
+
+function drawFavouriteMarkers()
+{
+    state.graphics.markers = {}
+    const cookie = getCookie("Favourites");
+    const favourites = JSON.parse(cookie);
+    for (let key of Object.keys(favourites))
+    {
+        addFavouriteMarker(key, favourites[key].lat, favourites[key].lng);
+    }
+}
+
+function deleteMarker(name)
+{
+    map.removeLayer(state.graphics.markers[name]);
+    delete state.graphics.markers[name]
 }
 
 function resetGraphics()
@@ -417,6 +443,7 @@ function saveToFavourites()
         return;
     }
     favourites[name] = state.latLng;
+    addFavouriteMarker(name, state.latLng.lat, state.latLng.lng);
     setCookie("Favourites", JSON.stringify(favourites), 365);
 }
 
@@ -431,6 +458,7 @@ function deleteFromFavourites(name)
             return;
         }
     });
+    deleteMarker(name);
     const cookie = getCookie("Favourites");
     const favourites = JSON.parse(cookie);
     delete favourites[name];
@@ -650,7 +678,7 @@ async function openWikipediaArticle()
 }
 
 //OPEN LOCAL FAVOURITES
-async function openLocalFavourites() //TODO: populate with cookies
+async function openLocalFavourites()
 {
     $("#flag").css("display", "none");
     $("#modal-title").html("Local Favourites");
@@ -774,6 +802,7 @@ $(document).ready(async () =>
     await getCurrentCountry();
     addLayerControls();
     populateDropdown(); 
+    drawFavouriteMarkers();
     $("#dropdown").change(onDropdownSelect);
     updateLatLng(state.latLng);
     map.on("click", (event) => { onLocalSelect(event.latlng); } );
