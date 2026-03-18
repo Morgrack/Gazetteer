@@ -436,7 +436,8 @@ function saveToFavourites()
 {
     const cookie = getCookie("Favourites");
     const favourites = cookie === '' ? {} : JSON.parse(cookie);
-    const name = $("#favourite-input").val();
+    const favouriteInput = $("#favourite-input");
+    const name = favouriteInput.val();
     if (favourites.hasOwnProperty(name))
     {
         alert("Name already taken. Please input another.");
@@ -445,6 +446,7 @@ function saveToFavourites()
     favourites[name] = state.latLng;
     addFavouriteMarker(name, state.latLng.lat, state.latLng.lng);
     setCookie("Favourites", JSON.stringify(favourites), 365);
+    favouriteInput.val("")
 }
 
 //DELETE FROM FAVOURITES
