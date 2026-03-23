@@ -77,6 +77,11 @@ body
     width: 205px;
 }
 
+#economic-footer /*TODO: replace this with Bootstrap*/
+{
+    margin-left: 4px;
+}
+
 .news-title
 {
     text-decoration: none;

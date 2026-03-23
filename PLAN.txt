@@ -1,9 +1,8 @@
 HIGH PRIORITY:
-- Fix sizing on weather modal (MONDAY)
-- Economic modal using dbnomics (MONDAY)
-- Make all DOM elements append at once rather than within loops (TUESDAY)
-- Time zone footer for current local time and make the whole modal update live (could be done with a recursive conditional timeout if feeling lazy) (TUESDAY)
-- Missing API information handling and early modal exit handling (WEDNESDAY)
+- Economic modal using dbnomics (Thursday)
+- Make all DOM elements append at once rather than within loops (Thursday)
+- Time zone footer for current local time and make the whole modal update live (could be done with a recursive conditional timeout if feeling lazy) (Friday)
+- Missing API information handling and early modal exit handling (Friday)
 
 LOW PRIORITY:
 - More marker clusters

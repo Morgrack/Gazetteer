@@ -168,6 +168,7 @@ function updateFlag()
 function enableEasyButtons()
 {
     easyButtons.openNationalOverview.enable();
+    easyButtons.openEconomicOverview.enable();
     easyButtons.openExchangeRate.enable();
     easyButtons.openTimeZoneConversion.enable();
     easyButtons.openLatestNews.enable();
@@ -177,6 +178,7 @@ function enableEasyButtons()
 function disableEasyButtons()
 {
     easyButtons.openNationalOverview.disable();
+    easyButtons.openEconomicOverview.disable();
     easyButtons.openExchangeRate.disable();
     easyButtons.openTimeZoneConversion.disable();
     easyButtons.openLatestNews.disable();
@@ -539,6 +541,36 @@ async function openNationalOverview()
     $("#pre-load-modal").addClass("fade-out");
 }
 
+//OPEN ECONOMIC OVERVIEW
+async function openEconomicOverview()
+{
+    $("#modal-title").html("Economic Overview");
+    $("#modal-body-container").append(await $.get("html/body/economic_overview.html"));
+    $("#modal").modal("show");
+    $("#modal-footer-container").append(await $.get("html/footer/economic_overview.html"));
+    const [dbnomicsGDP, dbnomicsGDPPerCapita, dbnomicsGNI, dbnomicsGNIPerCapita, dbnomicsGNIPerCapitaPPP] = await Promise.all([
+        $.ajax({ url: "php/dbnomics/getGDPFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.country.isoa3 } }),
+        $.ajax({ url: "php/dbnomics/getGDPPerCapitaFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.country.isoa3 } }),
+        $.ajax({ url: "php/dbnomics/getGNIFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.country.isoa3 } }),
+        $.ajax({ url: "php/dbnomics/getGNIPerCapitaFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.country.isoa3 } }),
+        $.ajax({ url: "php/dbnomics/getGNIPerCapitaPPPFromISOA3.php", type: "GET", dataType: "json", data: { isoa3: state.country.isoa3 } }),
+    ]);
+    if (dbnomicsGDP.data && dbnomicsGDPPerCapita.data && dbnomicsGNI.data && dbnomicsGNIPerCapita.data && dbnomicsGNIPerCapitaPPP.data)
+    {
+        $("#economic-footer").html(`Data from ${roundToDecimalPlace(dbnomicsGDP.data.year, 2)}`);
+        $("#gdp").html(`$${roundToDecimalPlace(dbnomicsGDP.data.value, 2)}`);
+        $("#gdp-per-capita").html(`$${roundToDecimalPlace(dbnomicsGDPPerCapita.data.value, 2)}`)
+        $("#gni").html(`$${roundToDecimalPlace(dbnomicsGNI.data.value, 2)}`)
+        $("#gni-per-capita").html(`$${roundToDecimalPlace(dbnomicsGNIPerCapita.data.value, 2)}`)
+        $("#gni-per-capita-ppp").html(`$${roundToDecimalPlace(dbnomicsGNIPerCapita.data.value, 2)}`)
+    }
+    else 
+    {
+        await showDisconnected();
+    }
+    $("#pre-load-modal").addClass("fade-out");
+}
+
 //OPEN EXCHANGE RATE
 async function openExchangeRate()
 {
@@ -791,6 +823,7 @@ const easyButtons = { openNationalOverview: null, openExchangeRate: null, openTi
 function createEasyButtons()
 {
     easyButtons.openNationalOverview = L.easyButton("fa-solid fa-globe", openNationalOverview).addTo(map);
+    easyButtons.openEconomicOverview = L.easyButton("fa-solid fa-money-bill-trend-up", openEconomicOverview).addTo(map);
     easyButtons.openExchangeRate = L.easyButton("fa-solid fa-money-bill-transfer", openExchangeRate).addTo(map);
     easyButtons.openTimeZoneConversion = L.easyButton("fa-solid fa-clock-rotate-left", openTimeZoneConversion).addTo(map);
     easyButtons.openLatestNews = L.easyButton("fa-solid fa-newspaper", openLatestNews).addTo(map);
