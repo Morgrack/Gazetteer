@@ -93,6 +93,7 @@ function drawFavouriteMarkers()
 {
     state.graphics.markers = {}
     const cookie = getCookie("Favourites");
+    if (cookie === '') { return; }
     const favourites = JSON.parse(cookie);
     for (let key of Object.keys(favourites))
     {
